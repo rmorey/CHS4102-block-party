@@ -1,0 +1,60 @@
+int speedcounter=0;
+int Tinitial,Tfinal;
+int FLinitial,FLfinal,FLspeed;
+int BRinitial,BRfinal,BRspeed;
+int FRinitial,FRfinal,FRspeed;
+int BLinitial,BLfinal,BLspeed;
+
+
+  /*  if (time1[T1]<=5 && speedcounter=0){ //intial data set
+      Tinitial=time1[T1];
+
+      FLinitial=nMotorEncoder[DriveFL];
+      BRinitial=nMotorEncoder[DriveBR];
+      FRinitial=nMotorEncoder[DriveFR];
+      BLinitial=nMotorEncoder[DriveBL];
+
+      speedcounter++;
+    }
+
+    if (time1[T1]>=35 && speedcounter=1) { //final data set
+
+      Tfinal=time1[T1];
+
+      FLfinal=nMotorEncoder[DriveFL];
+      BRfinal=nMotorEncoder[DriveBR];
+      FRfinal=nMotorEncoder[DriveFR];
+      BLfinal=nMotorEncoder[DriveBL];
+
+      speedcounter=0;
+    }
+
+    //calculate average speed
+    FLspeed = (FLfinal-FLinitial)/(Tfinal-Tinitial);
+    BRspeed = (BRfinal-BRinitial)/(Tfinal-Tinitial);
+    FRspeed = (FRfinal-FRinitial)/(Tfinal-Tinitial);
+    BLspeed = (BLfinal-BLinitial)/(Tfinal-Tinitial);
+
+    //NEED TO CALCULATE EXPECTED SPEED
+    FLexpect = //
+    BRexpect = //
+    FRexpect = //
+    BLexpect = //
+
+    if (abs(FLspeed-FLexpect)<range && abs(BRspeed-BRexpect)<range
+      && abs(FRspeed-FRexpect)<range && abs(BRspeed-BRexpect)<range)
+    {
+      ClearTimer(T2);
+    }
+
+    if (time1[T2]>=3000)
+    {
+     motor[DriveFL] = 0;
+     motor[DriveBR] = 0;
+     motor[DriveFR] = 0;
+     motor[DriveBL] = 0;
+
+     ClearTimer(T2);
+
+    }
+*/
