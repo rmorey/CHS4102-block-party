@@ -1,0 +1,32 @@
+controller 1:
+	left joystick: drive
+	right joystick: rotate
+	left joyclick:
+	right joyclick:
+	d-pad: slow drive (nudge)
+	x (1): hanging stuff
+	a (2): ''
+	b (3): ''
+	y (4): ''
+	top left trigger (5): slow rotate counter-clockwise
+	top right trigger (6): slow rotate clockwise
+	bottom left trigger (7): fast rotate counter-clockwise
+	bottom right trigger (8): fast rotate clockwise
+	back (9):
+	start (10): 
+controller 2:
+	left joystick: move bucket (both sliders)
+	right joystick:
+	left joyclick:
+	right joyclick:
+	d-pad: move bucket slow (both sliders)
+	x (1): score 
+	a (2): unscore
+	b (3): conveyor in 
+	y (4): conveyor out
+	top left trigger (5): flagger in
+	top right trigger (6): flagger out
+	bottom left trigger (7): spin flagger counter-clockwise
+	bottom right trigger (8): spin flagger clockwise
+	back (9): catch
+	start (10): release
