@@ -118,7 +118,7 @@ task main() {
       motor[motorLB] = BUCKET_SPEED;  
       motor[motorRB] = BUCKET_SPEED;
       while(BUCKET_DPAD == 0) {
-	; // maintains speed while button is being pressed
+	getJoystickSettings(joystick); // maintains speed while button is being pressed
       }
       motor[motorLB] = 0; // stops once button is no longer pressed
       motor[motorRB] = 0;
@@ -127,7 +127,7 @@ task main() {
       motor[motorLB] = -BUCKET_SPEED;
       motor[motorRB] = -BUCKET_SPEED;
       while(BUCKET_DPAD == 4) {
-	;
+	getJoystickSettings(joystick);
       }
       motor[motorLB] = 0;
       motor[motorRB] = 0;
@@ -165,21 +165,21 @@ task main() {
     if (LEFT_SLIDER_DOWN_BTN) {
       motor[motorLB] = -SLIDER_SPEED;
       while (LEFT_SLIDER_DOWN_BTN) {
-	;
+	getJoystickSettings(joystick);
       }
       motor[motorLB] = 0;
     }
     if (RIGHT_SLIDER_UP_BTN) {
       motor[motorRB] = SLIDER_SPEED;
       while (RIGHT_SLIDER_UP_BTN) {
-	;
+	getJoystickSettings(joystick);
       }
       motor[motorRB] = 0;
     }
     if (RIGHT_SLIDER_DOWN_BTN) {
       motor[motorRB] = -SLIDER_SPEED;
       while (RIGHT_SLIDER_DOWN_BTN) {
-	;
+	getJoystickSettings(joystick);
       }
       motor[motorRB] = 0;
     }
