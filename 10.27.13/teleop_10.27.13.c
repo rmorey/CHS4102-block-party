@@ -158,7 +158,7 @@ task main() {
     if (LEFT_SLIDER_UP_BTN) {
       motor[motorLB] = SLIDER_SPEED;
       while (LEFT_SLIDER_UP_BTN) {
-	;
+	getJoystickSettings(joystick);
       }
       motor[motorLB] = 0;
     }
