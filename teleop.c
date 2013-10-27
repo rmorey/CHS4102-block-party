@@ -50,7 +50,8 @@
 #define SCORE_SPEED 15
 #define CONVEYOR_SPEED 100
 
-void InitializeRobot (){
+void InitializeRobot ()
+{
 	nMotorEncoder[motorLB] = 0;
 	nMotorEncoder[motorRB] = 0;
 	return;
@@ -60,18 +61,31 @@ task main(){
 	InitializeRobot();
 	int conveyor_status = 0;
 	waitForStart();
-	motor[motorBELT] = 100;
-	wait1Msec(30000);
-	while(false) {
-		//joystick drive
-		writeDebugStream("%d",((70.7*DRIVE_JS_X)/127.0-(70.7*DRIVE_JS_Y)/127.0));
-		
-		motor[motorFR] = (70.7*DRIVE_JS_X)/127.0-(70.7*DRIVE_JS_Y)/127.0 - (100*ROTATE_JS)/127;
-		motor[motorFL] = (70.7*DRIVE_JS_Y)/127.0+(70.7*DRIVE_JS_X)/127.0 + (100*ROTATE_JS)/127;
-		motor[motorBR] = (70.7*DRIVE_JS_Y)/127.0+(70.7*DRIVE_JS_X)/127.0 - (100*ROTATE_JS)/127;
-		motor[motorBL] = (70.7*DRIVE_JS_X)/127.0-(70.7*DRIVE_JS_Y)/127.0 + (100*ROTATE_JS)/127;
+	while(true) {
+	  //joystick drive
+	  writeDebugStream("%d",((70.7*DRIVE_JS_X)/127.0-(70.7*DRIVE_JS_Y)/127.0));
+	  int FRpower = (70.7*DRIVE_JS_X)/127.0-(70.7*DRIVE_JS_Y)/127.0 + (100*ROTATE_JS)/127;
+	  int FLpower = (70.7*DRIVE_JS_Y)/127.0+(70.7*DRIVE_JS_X)/127.0 + (100*ROTATE_JS)/127;
+	  int BRpower = (70.7*DRIVE_JS_Y)/127.0+(70.7*DRIVE_JS_X)/127.0 - (100*ROTATE_JS)/127;
+	  int BLpower = (70.7*DRIVE_JS_X)/127.0-(70.7*DRIVE_JS_Y)/127.0 - (100*ROTATE_JS)/127;
+
+	  if (abs(FRpower) < 10) {
+	    FRpower = 0;
+	  }
+	  if (abs(FLpower) < 10) {
+	    FLpower = 0;
+	  }if (abs(BRpower) < 10) {
+	    BRpower = 0;
+	  }if (abs(BLpower) < 10) {
+	    BLpower = 0;
+	  }
+	  motor[motorFR] = FRpower;
+	  motor[motorFL] = FLpower;
+	  motor[motorBR] = BRpower;
+	  motor[motorBL] = BLpower;
 
 		//slow dpad drive
+	  
 		switch(DRIVE_DPAD) {
 		case -1: //not pressed
 			break;
@@ -80,56 +94,56 @@ task main(){
 			motor[motorFL] = SLOW_SPEED;
 			motor[motorBR] = SLOW_SPEED;
 			motor[motorBL] = SLOW_SPEED;
-			wait1msec(20);
+			wait1Msec(20);
 			break;
 		case 1: //forward-right
 			motor[motorFR] = 0;
 			motor[motorFL] = SLOW_SPEED;
 			motor[motorBR] = SLOW_SPEED;
 			motor[motorBL] = 0;
-			wait1msec(20);
+			wait1Msec(20);
 			break;
 		case 2: //right
 			motor[motorFR] = -SLOW_SPEED;
 			motor[motorFL] = SLOW_SPEED;
 			motor[motorBR] = SLOW_SPEED;
 			motor[motorBL] = -SLOW_SPEED;
-			wait1msec(20);
+			wait1Msec(20);
 			break;
 		case 3: // back-right
 			motor[motorFR] = -SLOW_SPEED;
 			motor[motorFL] = 0;
 			motor[motorBR] = 0;
 			motor[motorBL] = -SLOW_SPEED;
-			wait1msec(20);
+			wait1Msec(20);
 			break;
 		case 4: // backward
 			motor[motorFR] = -SLOW_SPEED;
 			motor[motorFL] = -SLOW_SPEED;
 			motor[motorBR] = -SLOW_SPEED;
 			motor[motorBL] = -SLOW_SPEED;
-			wait1msec(20);
+			wait1Msec(20);
 			break;
 		case 5: //back-left
 			motor[motorFR] = 0;
 			motor[motorFL] = -SLOW_SPEED;
 			motor[motorBR] = -SLOW_SPEED;
 			motor[motorBL] = 0;
-			wait1msec(20);
+			wait1Msec(20);
 			break;
 		case 6: // left
 			motor[motorFR] = SLOW_SPEED;
 			motor[motorFL] = -SLOW_SPEED;
 			motor[motorBR] = -SLOW_SPEED;
 			motor[motorBL] = SLOW_SPEED;
-			wait1msec(20);
+			wait1Msec(20);
 			break;
 		case 7: //forward-left
 			motor[motorFR] = SLOW_SPEED;
 			motor[motorFL] = 0;
 			motor[motorBR] = 0;
 			motor[motorBL] = SLOW_SPEED;
-			wait1msec(20);
+			wait1Msec(20);
 			break;
 		}
 
@@ -139,8 +153,9 @@ task main(){
 		motor[motorFL] = (100*ROTATE_JS)/127;
 		motor[motorBR] = -(100*ROTATE_JS)/127;
 		motor[motorBL] = (100*ROTATE_JS)/127;
-**/
+		**/
 		//slow trigger rotate
+		/**
 		if(SLOW_ROTATE_CW_BTN){
 			motor[motorFR] = -SLOW_SPEED;
 			motor[motorFL] = SLOW_SPEED;
@@ -153,35 +168,8 @@ task main(){
 			motor[motorBR] = SLOW_SPEED;
 			motor[motorBL] = -SLOW_SPEED;
 		}
-
-
-		//Joystick Slippage
-		/**
-		if(DRIVE_JS_X < 10)
-		{
-			DRIVE_JS_X =0;
-		}
-
-		if(ROTATE_JS < 10)
-		{
-			ROTATE_JS = 0;
-		}
-
-		if(BUCKET_JS < 10)
-		{
-			BUCKET_JS = 0;
-		}
-
-		if(DRIVE_JS_Y < 10)
-		{
-			DRIVE_JS_Y = 0;
-		}
-**/
-
-
-
 		if(FAST_ROTATE_CW_BTN){
-		//fast trigger rotate
+			//fast trigger rotate
 			motor[motorFR] = -FAST_SPEED;
 			motor[motorFL] = FAST_SPEED;
 			motor[motorBR] = -FAST_SPEED;
@@ -193,28 +181,35 @@ task main(){
 			motor[motorBR] = FAST_SPEED;
 			motor[motorBL] = -FAST_SPEED;
 		}
-
+		**/
 		// joystick bucket control (fast)
-		motor[motorLB] = (100*BUCKET_JS)/127;
-		motor[motorRB] = (100*BUCKET_JS)/127;
-		// dpad bucket control (slow)
+		motor[motorLB] = (50*BUCKET_JS)/127;
+		motor[motorRB] = (50*BUCKET_JS)/127;
+		//dpad bucket control (slow)
 
 
 		// score/reset , only moves left slider, unscore also resets bucket height
+		/**
 		if (SCORE_BTN) {
-			while ((nMotorEncoder[motorRB] - nMotorEncoder[motorLB]) < SCORE_OFFSET) {
-				motor[motorLB] = SCORE_SPEED;
-			}
-			motor[motorLB] = 0;
+		while ((nMotorEncoder[motorRB] - nMotorEncoder[motorLB]) < SCORE_OFFSET) {
+		motor[motorLB] = SCORE_SPEED;
 		}
-
+		motor[motorLB] = 0;
+		}
+		
+		while(SCORE_BTN){
+			motor[motorLB] = SCORE_SPEED;
+		}
+		motor[motorLB] = 0;
 		if(UNSCORE_BTN) {
-			while (nMotorEncoder[motorLB] > nMotorEncoder[motorRB]) { // resets left slider
+			while (nMotorEncoder[motorLB] > nMotorEncoder[motorRB]) 
+			{ // resets left slider
 				motor[motorRB] = RESET_SPEED;
 			}
 			int height = nMotorEncoder[motorLB];
 			nMotorEncoder[motorLB] = 0;
-			while (nMotorEncoder[motorLB] > -height) { // brings both sliders down
+			while (nMotorEncoder[motorLB] > -height) 
+			{ // brings both sliders down
 				motor[motorLB] = RESET_SPEED;
 				motor[motorRB] = RESET_SPEED;
 			}
@@ -223,49 +218,41 @@ task main(){
 			nMotorEncoder[motorLB] = 0;
 			nMotorEncoder[motorRB] = 0;
 		}
-
+		**/
 		//conveyor belt control
 		if(CONVEYOR_IN_BTN) {
-			if (conveyor_status == 1)	{
-				motor[motorC] = 0;
-				conveyor_status = 0;
-			}
-
-			else {
-				motor[motorC] = CONVEYOR_SPEED;
-				conveyor_status = 1;
-			}
+		  if (conveyor_status == 1) {
+		    conveyor_status = 0;
+		  }
+		  else {
+		    conveyor_status = 1;
+		  }
 		}
 
 		if(CONVEYOR_OUT_BTN) {
-			if (conveyor_status == -1)	{
-				motor[motorC] = 0;
-				conveyor_status = 0;
-			}
-
-
-			else {
-				motor[motorC] = -CONVEYOR_SPEED;
-				conveyor_status = -1;
-			}
+		  if (conveyor_status == -1)	{
+		    conveyor_status = 0;
+		  }
+		  else {
+		    conveyor_status = -1;
+		  }
 		}
+		motor[motorBELT] = conveyor_status * CONVEYOR_SPEED;
 
 		//flagger in/out
 
 		//spin flagger (Here's an attempt at it)
-		if (FLAGGER_OUT_BTN) {
-			servo[servo1] = 168;
+		while (FLAGGER_OUT_BTN) {
+			servo[servo1] = 5;
+
+
 		}
 
-		if (FLAGGER_IN_BTN) {
+		while (FLAGGER_IN_BTN) {
 			servo[servo1] = 20;
 		}
-		if (SPIN_FLAGGER_CW_BTN) {
-			motor[motorC] = 10;
-		}
-		else
-		{
-			motor[motorC] = 0;
+		while (SPIN_FLAGGER_CW_BTN) {
+			motor[leggomyeggo] = 30;
 		}
 
 
