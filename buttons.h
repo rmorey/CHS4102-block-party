@@ -22,6 +22,7 @@
 #define BUCKET_DPAD joystick.joy2_TopHat
 #define DRIVE_DPAD joystick.joy1_TopHat
 
+
 void goForward (int power) {// these functions go in the specified direction at the specified power
 	motor[M_drive_FL] = power;
 	motor[M_drive_FR] = power;
@@ -79,19 +80,19 @@ void haltAllMotors () { //stops all motors
 	motor[M_belt] = 0;
 	motor[M_slider_R] = 0;
 	motor[M_slider_L] = 0;
-	motor[M_flag_spin] = 0;
+	motor[M_flag] = 0;
 }
 
 void raiseBucket() { // raises bucket to topmost position
 	nMotorEncoder[M_slider_R] = 0;
 	nMotorEncoder[M_slider_L] = 0;
-	
-	nMotorEncoderTarget[M_slider_R] = ???
-	nMotorEncoderTarget[M_slider_L] = ???
-	
+
+	nMotorEncoderTarget[M_slider_R] = 100; // TODO: fix these values
+	nMotorEncoderTarget[M_slider_L] = 100;
+
 	motor[M_slider_R] = 50;
 	motor[M_slider_L] = 50;
-	
+
 	while (nMotorRunState[M_slider_R] != runStateIdle || nMotorRunState[M_slider_L] != runStateIdle){
 		// waits until motors have stopped
 	}
@@ -99,13 +100,13 @@ void raiseBucket() { // raises bucket to topmost position
 }
 
 void scoreBlocks() { //tilts scoring servo to score blocks
-	servo[S_score_1] = ???
-	servo[S_score_2] = ???
+	servo[S_score_1] = 10; //TODO: fix this
+	servo[S_score_2] = 10;
 }
 
 void resetBucket() { // returns scoring servos to horizontal, and brings bucket back to bottom
-	servo[S_score_1] = ???
-	servo[S_score_2] = ???
+	servo[S_score_1] = 10; //TODO: fix
+	servo[S_score_2] = 10;
 
 	nMotorEncoderTarget[M_slider_L] = 0; // sets encoder targets to bottom
 	nMotorEncoderTarget[M_slider_R] = 0;
@@ -120,7 +121,7 @@ void resetBucket() { // returns scoring servos to horizontal, and brings bucket 
 }
 
 void rotateBotPower(int power){ // rotate bot givesfpofer, positive is ccw, negative is cw
-	motor[M_drive_FR] = power;	
+	motor[M_drive_FR] = power;
 	motor[M_drive_FL] = -power;
 	motor[M_drive_BR] = power;
 	motor[M_drive_BL] = -power;

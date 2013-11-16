@@ -1,19 +1,20 @@
 #pragma config(Hubs,  S1, HTMotor,  HTMotor,  HTMotor,  HTMotor)
 #pragma config(Hubs,  S2, HTServo,  none,     none,     none)
+#pragma config(Sensor, S1,     ,               sensorI2CMuxController)
+#pragma config(Sensor, S2,     ,               sensorI2CMuxController)
 #pragma config(Sensor, S3,     IRsensor,       sensorHiTechnicIRSeeker1200)
 #pragma config(Sensor, S4,     ColorSensor,    sensorI2CHiTechnicColor)
-#pragma config(Motor,  motorC,          M_flag_spin,   tmotorNXT, PIDControl, encoder)
 #pragma config(Motor,  mtr_S1_C1_1,     M_drive_BR,    tmotorTetrix, openLoop, encoder)
 #pragma config(Motor,  mtr_S1_C1_2,     M_drive_BL,    tmotorTetrix, openLoop, encoder)
 #pragma config(Motor,  mtr_S1_C2_1,     M_drive_FL,    tmotorTetrix, openLoop, encoder)
 #pragma config(Motor,  mtr_S1_C2_2,     M_drive_FR,    tmotorTetrix, openLoop, encoder)
-#pragma config(Motor,  mtr_S1_C3_1,     M_slide_R,     tmotorTetrix, openLoop, encoder)
-#pragma config(Motor,  mtr_S1_C3_2,     M_slide_L,     tmotorTetrix, openLoop, encoder)
+#pragma config(Motor,  mtr_S1_C3_1,     M_slider_R,    tmotorTetrix, openLoop, encoder)
+#pragma config(Motor,  mtr_S1_C3_2,     M_slider_L,    tmotorTetrix, openLoop, encoder)
 #pragma config(Motor,  mtr_S1_C4_1,     M_belt,        tmotorTetrix, openLoop)
-#pragma config(Motor,  mtr_S1_C4_2,     motorK,        tmotorTetrix, openLoop)
+#pragma config(Motor,  mtr_S1_C4_2,     M_flag,        tmotorTetrix, openLoop)
 #pragma config(Servo,  srvo_S2_C1_1,    S_score_1,            tServoStandard)
 #pragma config(Servo,  srvo_S2_C1_2,    S_score_2,            tServoStandard)
-#pragma config(Servo,  srvo_S2_C1_3,    S_flag_out,           tServoStandard)
+#pragma config(Servo,  srvo_S2_C1_3,    servo3,               tServoNone)
 #pragma config(Servo,  srvo_S2_C1_4,    servo4,               tServoNone)
 #pragma config(Servo,  srvo_S2_C1_5,    servo5,               tServoNone)
 #pragma config(Servo,  srvo_S2_C1_6,    servo6,               tServoNone)
@@ -24,9 +25,12 @@
 
 void initializeRobot() {
 	// TODO: initialize scoring servos to correct location
+	nMotorEncoder[M_drive_FL] = 0;
+	nMotorEncoder[M_drive_FR] = 0;
+	nMotorEncoder[M_drive_BL] = 0;
+	nMotorEncoder[M_drive_BR] = 0;
 	return;
 }
-
 
 task main() {
 	initializeRobot();
@@ -34,14 +38,43 @@ task main() {
 	waitForStart(); // Wait for the beginning of autonomous phase.
 
 	goLeft(50); // start going left, robot should be facing baskets
-	while (IRVALUE != 5) { //check to see if the ir beacon is in front of the sensor
+	while (SensorValue[IRsensor] != 5) { //checks for ir beacon
 		;
-	}	
+	}
 	haltAllMotors(); // stop, we have found the beacon
-	goForward(15); // move towards basket
-	// TODO: add wait loop here
-	haltAllMotors();
 	raiseBucket();
 	scoreBlocks(); //scores block
+	resetBucket();
+	nMotorEncoderTarget[M_drive_FL] = 0;  //TODO: FIX THESE
+	nMotorEncoderTarget[M_drive_FR] = 0;
+	nMotorEncoderTarget[M_drive_BL] = 0;
+	nMotorEncoderTarget[M_drive_FR] = 0;
+
+	goLeft(75);
+	while (nMotorRunState[M_drive_FR] != runStateIdle || nMotorRunState[M_drive_BL] != runStateIdle){
+		// waits until motors have stopped
+	}
+	goForward(75);
+
+	nMotorEncoderTarget[M_drive_FL] = 0;  //TODO: FIX THESE
+	nMotorEncoderTarget[M_drive_FR] = 0;
+	nMotorEncoderTarget[M_drive_BL] = 0;
+	nMotorEncoderTarget[M_drive_FR] = 0;
+
+	while (nMotorRunState[M_drive_FR] != runStateIdle || nMotorRunState[M_drive_BL] != runStateIdle){
+		// waits until motors have stopped
+	}
+
+	goRight(75);
+
+	nMotorEncoderTarget[M_drive_FL] = 0;  //TODO: FIX THESE
+	nMotorEncoderTarget[M_drive_FR] = 0;
+	nMotorEncoderTarget[M_drive_BL] = 0;
+	nMotorEncoderTarget[M_drive_FR] = 0;
+
+	while (nMotorRunState[M_drive_FR] != runStateIdle || nMotorRunState[M_drive_BL] != runStateIdle){
+		// waits until motors have stopped
+	}
 	haltAllMotors();
+
 }
