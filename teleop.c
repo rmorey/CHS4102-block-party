@@ -21,21 +21,22 @@
 
 #include "JoystickDriver.c"
 #include "robot.h"
-// dthis has all the button definitions
 
-#define BUCKET_SPEED 100
+#define PWR_BUCKET 100
 #define DRIVE_SPEED 100
-#define ROTATE_SPEED 100
+#define PWR_ROTATE 100
 
 bool tilted_drive = false;
-float FRpower = 0;
-float FLpower = 0;
-float BRpower = 0;
-float BLpower = 0;
+int pwr_FR = 0;
+int pwr_FL = 0;
+int pwr_BR = 0;
+int pwr_BL = 0;
+int pwr_bucket = 0;
 
 
 void InitializeRobot (){
-	bFloatDuringInactiveMotorPWM = false;
+	nMotorEncoder[M_slider_L] = 0;
+	nMotorEncoder[M_slider_R] = 0;
 	return;
 }
 
@@ -43,47 +44,58 @@ task DriveUpdate() {
 	while (true) {
 		getJoystickSettings(joystick);
 
+		//titled drive mode, the flag spinner is considered the front of the robot
 		if (tilted_drive) {
-			FRpower = (DRIVE_SPEED * DRIVE_JS_Y) / 127.0 - ROTATE_SPEED*ROTATE_JS/127.0;
-			FLpower = (DRIVE_SPEED * DRIVE_JS_X) / 127.0 + ROTATE_SPEED*ROTATE_JS/127.0;
-			BRpower = (DRIVE_SPEED * DRIVE_JS_X) / 127.0 - ROTATE_SPEED*ROTATE_JS/127.0;
-			BLpower = (DRIVE_SPEED * DRIVE_JS_Y) / 127.0 + ROTATE_SPEED*ROTATE_JS/127.0;
-
-
+			pwr_FR = (DRIVE_SPEED * JS_DRIVE_Y) / 127.0 - PWR_ROTATE*JS_ROTATE/127.0;
+			pwr_FL = (DRIVE_SPEED * JS_DRIVE_X) / 127.0 + PWR_ROTATE*JS_ROTATE/127.0;
+			pwr_BR = (DRIVE_SPEED * JS_DRIVE_X) / 127.0 - PWR_ROTATE*JS_ROTATE/127.0;
+			pwr_BL = (DRIVE_SPEED * JS_DRIVE_Y) / 127.0 + PWR_ROTATE*JS_ROTATE/127.0;
 		}
-		else {
-			FRpower = .557*(DRIVE_JS_Y - DRIVE_JS_X - ROTATE_JS);
-			FLpower = .557*(DRIVE_JS_Y + DRIVE_JS_X + ROTATE_JS);
-			BRpower = .557*(DRIVE_JS_Y + DRIVE_JS_X - ROTATE_JS);
-			BLpower = .557*(DRIVE_JS_Y - DRIVE_JS_X + ROTATE_JS);
 
+		//standard omniwheel drive
+		else {
+			pwr_FR = .557*(JS_DRIVE_Y - JS_DRIVE_X - JS_ROTATE);
+			pwr_FL = .557*(JS_DRIVE_Y + JS_DRIVE_X + JS_ROTATE);
+			pwr_BR = .557*(JS_DRIVE_Y + JS_DRIVE_X - JS_ROTATE);
+			pwr_BL = .557*(JS_DRIVE_Y - JS_DRIVE_X + JS_ROTATE);
 		}
 
 		//slippage control
-		if (abs(FRpower) < 10) {
-			FRpower = 0;
+		if (abs(pwr_FR) < 10) {
+			pwr_FR = 0;
 		}
-		if (abs(FLpower) < 10) {
-			FLpower = 0;
+		if (abs(pwr_FL) < 10) {
+			pwr_FL = 0;
 		}
-		if (abs(BRpower) < 10) {
-			BRpower = 0;
+		if (abs(pwr_BR) < 10) {
+			pwr_BR = 0;
 		}
-		if (abs(BLpower) < 10) {
-			BLpower = 0;
+		if (abs(pwr_BL) < 10) {
+			pwr_BL = 0;
 		}
 
-		motor[M_drive_FR] = FRpower;
-		motor[M_drive_FL] = FLpower;
-		motor[M_drive_BR] = BRpower;
-		motor[M_drive_BL] = BLpower;
+		motor[M_drive_FR] = pwr_FR;
+		motor[M_drive_FL] = pwr_FL;
+		motor[M_drive_BR] = pwr_BR;
+		motor[M_drive_BL] = pwr_BL;
 
-		int bucket_power = (BUCKET_SPEED*BUCKET_JS)/127.0;
-		if (abs(BUCKET_JS) < 5) { //slippage control
-			bucket_power = 0;
+
+		//bucket control
+		int js_bucket = JS_ROTATE; //get current joystick value
+		int enc_L_bucket = nMotorEncoder[M_slider_L]; //get current encoder value
+		int	enc_R_bucket = nMotorEncoder[M_slider_R];
+		if (
+				(abs(js_bucket) > 5)&&  //slippage check
+				(enc_L_bucket > 0)&&(enc_L_bucket < ENC_BUCKET_MAX) && //checks that we havent gone past our encoder limits
+				(enc_R_bucket > 0)&&(enc_R_bucket < ENC_BUCKET_MAX)) {
+					pwr_bucket = (PWR_BUCKET*JS_BUCKET)/127.0;
 		}
-		motor[M_slider_L] = bucket_power;
-		motor[M_slider_R] = bucket_power;
+		else {
+			pwr_bucket = 0;
+		}
+		motor[M_slider_L] = pwr_bucket;
+		motor[M_slider_R] = pwr_bucket;
+
 		EndTimeSlice();
 	}
 }
@@ -97,42 +109,52 @@ task main() {
 	while(true) {
 		getJoystickSettings(joystick);
 
-		if(bDisconnected) { //kills motors and program if connection is losts
+		if(bDisconnected) { //kills motors and program if connection is lost
 			haltAllMotors();
 			StopAllTasks();
 		}
 
 		// belt control
-		while (BELT_IN_BTN) {
+		while (BTN_BELT_IN) {
 			motor[M_belt] = 100;
 			getJoystickSettings(joystick);
 		}
 		motor[M_belt] = 0;
 
-		while (BELT_OUT_BTN) {
+		while (BTN_BELT_OUT) {
 			motor[M_belt] = -100;
 			getJoystickSettings(joystick);
 		}
 		motor[M_belt] = 0;
 
-		if (SCORE_BTN) {
+		//score blocks button
+		if (BTN_SCORE) {
 			scoreBlocks();
 		}
 
-		if(KILL_BTN) {  // Global abort
+		// Global motor kill!
+		if(BTN_KILL) {
 			haltAllMotors();
 		}
 
-		if (TILT_BTN) {
+		//switches to the tilted drive mode, flag spinner is now front of robot
+		if (BTN_TILT) {
 			tilted_drive = !tilted_drive;
 			wait1Msec(10);
 		}
 
-		while (FLAG_BTN) {
+		//flag control hold button to run flag spinner
+		while (BTN_FLAG) {
 			motor[M_flag] = 100;
 			getJoystickSettings(joystick);
 		}
 		motor[M_flag] = 0;
+		
+		//reset bucket encoder to zero
+		if (BTN_ENC_RESET) {
+			nMotorEncoder[M_slider_L] = 0;
+			nMotorEncoder[M_slider_R] = 0;
+		}
 
 		EndTimeSlice();
 	}
