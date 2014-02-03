@@ -29,7 +29,6 @@ lowerCase means a variable
 #define BTN_HOOK_IN joy2Btn(4)
 #define BTN_ENC_IGNORE joy2Btn(5) // ignores encoder limits when held
 #define BTN_ENC_RESET joy2Btn(6) //reset the bucket encoder values to zero
-
 #define JS_BUCKET joystick.joy2_y1
 
 //both drivers
