@@ -6,13 +6,13 @@
 #pragma config(Motor,  mtr_S1_C1_1,     M_DRIVE_BL,    tmotorTetrix, openLoop, reversed, encoder)
 #pragma config(Motor,  mtr_S1_C1_2,     M_DRIVE_FL,    tmotorTetrix, openLoop, reversed, encoder)
 #pragma config(Motor,  mtr_S1_C2_1,     M_BELT,        tmotorTetrix, openLoop, reversed)
-#pragma config(Motor,  mtr_S1_C2_2,     M_SLIDER_L,    tmotorTetrix, openLoop, reversed, encoder)
+#pragma config(Motor,  mtr_S1_C2_2,     M_LIFT_L,    tmotorTetrix, openLoop, reversed, encoder)
 #pragma config(Motor,  mtr_S2_C2_1,     M_DRIVE_BR,    tmotorTetrix, openLoop, encoder)
 #pragma config(Motor,  mtr_S2_C2_2,     M_DRIVE_FR,    tmotorTetrix, openLoop, encoder)
-#pragma config(Motor,  mtr_S2_C3_1,     M_SLIDER_R,    tmotorTetrix, openLoop, encoder)
-#pragma config(Motor,  mtr_S2_C3_2,     M_flag,        tmotorTetrix, openLoop)
-#pragma config(Servo,  srvo_S2_C1_1,    S_score,              tServoContinuousRotation)
-#pragma config(Servo,  srvo_S2_C1_2,    S_hook,               tServoContinuousRotation)
+#pragma config(Motor,  mtr_S2_C3_1,     M_LIFT_R,    tmotorTetrix, openLoop, encoder)
+#pragma config(Motor,  mtr_S2_C3_2,     M_FLAG,        tmotorTetrix, openLoop)
+#pragma config(Servo,  srvo_S2_C1_1,    S_SCORE,              tServoContinuousRotation)
+#pragma config(Servo,  srvo_S2_C1_2,    S_HOOK,               tServoContinuousRotation)
 #pragma config(Servo,  srvo_S2_C1_3,    S_LID,                tServoStandard)
 #pragma config(Servo,  srvo_S2_C1_4,    servo4,               tServoNone)
 #pragma config(Servo,  srvo_S2_C1_5,    servo5,               tServoNone)
@@ -22,7 +22,7 @@
 #include "JoystickDriver.c"
 #include "robot.h"
 
-#define PWR_BUCKET 100
+#define PWR_LIFT 100
 #define PWR_DRIVE 100
 #define PWR_ROTATE 100
 #define SRV_HOOK 30
@@ -34,17 +34,17 @@ int pwr_FR = 0;
 int pwr_FL = 0;
 int pwr_BR = 0;
 int pwr_BL = 0;
-int pwr_bucket = 0;
+int pwr_lift = 0;
 
 
 void InitializeRobot (){
-  nMotorEncoder[M_SLIDER_R] = 0;
+  nMotorEncoder[M_LIFT_R] = 0;
   servo[S_LID] = 250;
   return;
 }
 
 task DriveUpdate() {
-  //Drive control and bucket control update loop
+  //Drive control and lift control update loop
   while (true) {
     getJoystickSettings(joystick);
 
@@ -91,22 +91,22 @@ task DriveUpdate() {
   }
 }
 
-task BucketUpdate() {
+task LiftUpdate() {
   while(true) {
-    //bucket control
-    int js_bucket = JS_BUCKET;
-    if (abs(js_bucket) < 5) js_bucket = 0; //slippage control
-      int enc_R_bucket = nMotorEncoder[M_SLIDER_R];
-    nxtDisplayString(0, "%8d", nMotorEncoder[M_SLIDER_R]);
-    if (!BTN_ENC_IGNORE && ((enc_R_bucket < 0 && js_bucket < 0) || (enc_R_bucket > ENC_BUCKET_MAX && js_bucket > 0))) {
-      pwr_bucket = 0;
+    //lift control
+    int js_lift = JS_LIFT;
+    if (abs(js_lift) < 5) js_lift = 0; //slippage control
+      int enc_R_lift = nMotorEncoder[M_LIFT_R];
+    nxtDisplayString(0, "%8d", nMotorEncoder[M_LIFT_R]);
+    if (!BTN_ENC_IGNORE && ((enc_R_lift < 0 && js_lift < 0) || (enc_R_lift > ENC_LIFT_MAX && js_lift > 0))) {
+      pwr_lift = 0;
     }
     else {
-      pwr_bucket = PWR_BUCKET*(js_bucket/127.0);
+      pwr_lift = PWR_LIFT*(js_lift/127.0);
     }
 
-    motor[M_SLIDER_L] = pwr_bucket;
-    motor[M_SLIDER_R] = pwr_bucket;
+    motor[M_LIFT_L] = pwr_lift;
+    motor[M_LIFT_R] = pwr_lift;
 
     EndTimeSlice();
   }
@@ -117,7 +117,7 @@ task main() {
   waitForStart();
 
   StartTask(DriveUpdate);
-  StartTask(BucketUpdate);
+  StartTask(LiftUpdate);
 
   while(true) {
     getJoystickSettings(joystick);
@@ -172,25 +172,25 @@ task main() {
 
     //flag control hold button to run flag spinner
     while (BTN_FLAG) {
-      motor[M_flag] = 100;
+      motor[M_FLAG] = 100;
       getJoystickSettings(joystick);
     }
-    motor[M_flag] = 0;
+    motor[M_FLAG] = 0;
 
-    //reset bucket encoder to zero
-    if (BTN_ENC_RESET) nMotorEncoder[M_SLIDER_R] = 0;
+    //reset lift encoder to zero
+    if (BTN_ZERO) nMotorEncoder[M_LIFT_R] = 0;
 
     //hook contrlol
     while (BTN_HOOK_OUT) {
-      servo[S_hook] = 64;
+      servo[S_HOOK] = 64;
       getJoystickSettings(joystick);
     }
 
     while (BTN_HOOK_IN) {
-      servo[S_hook] = 192;
+      servo[S_HOOK] = 192;
       getJoystickSettings(joystick);
     }
-    servo[S_hook] = 128;
+    servo[M_FLAG] = 128;
 
     if (BTN_LID) {
       if (lid_closed) {

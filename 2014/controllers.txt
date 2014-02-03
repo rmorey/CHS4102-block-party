@@ -15,11 +15,11 @@ controller 1:
 	back (9):
 	start (10): 
 controller 2:
-	left joystick: move bucket (both sliders)
+	left joystick: move lift (both sliders)
 	right joystick:
 	left joyclick:
 	right joyclick:
-	d-pad: move bucket slow (both sliders)
+	d-pad: move lift slow (both sliders)
 	x (1): score 
 	a (2): unscore
 	b (3): conveyor in 
