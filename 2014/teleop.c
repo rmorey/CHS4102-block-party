@@ -25,7 +25,6 @@
 #define PWR_LIFT 100
 #define PWR_DRIVE 100
 #define PWR_ROTATE 100
-#define SRV_HOOK 30
 #define JS_THRESH 5 //slippage threshold
 
 int drive_direction = 1; //1 for forwards, -1 for backwards
@@ -88,10 +87,29 @@ task DriveUpdate() {
 }
 
 task LiftUpdate() {
+  //lift control update loop
   while(true) {
-    //lift control
-    int js_lift = JS_LIFT;
 
+    //buttons to go straight to top/bottom
+    if (BTN_RAISE_LIFT) {
+      motor[M_LIFT_L] = 100;
+      motor[M_LIFT_R] = 100;
+      while (!BTN_STOP_LIFT && nMotorEncoder[M_LIFT_R] < enc_lift_max) {
+        getJoystickSettings(joystick);
+      }
+      liftStop();
+    }
+
+    if (BTN_LOWER_LIFT) {
+      motor[M_LIFT_L] = -100;
+      motor[M_LIFT_R] = -100;
+      while (!BTN_STOP_LIFT && nMotorEncoder[M_LIFT_R] > 0) {
+        getJoystickSettings(joystick);
+      }
+      liftStop();
+    }
+
+    int js_lift = JS_LIFT;
     if (abs(js_lift) < JS_THRESH) js_lift = 0;
 
     int enc_R_lift = nMotorEncoder[M_LIFT_R];

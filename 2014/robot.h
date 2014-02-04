@@ -1,22 +1,3 @@
-#pragma config(Hubs,  S1, HTMotor,  HTMotor,  none,     none)
-#pragma config(Hubs,  S2, HTServo,  HTMotor,  HTMotor,  none)
-#pragma config(Sensor, S1,     ,               sensorI2CMuxController)
-#pragma config(Sensor, S2,     ,               sensorI2CMuxController)
-#pragma config(Sensor, S3,     IRsensor,       sensorHiTechnicIRSeeker1200)
-#pragma config(Motor,  mtr_S1_C1_1,     M_DRIVE_BL,    tmotorTetrix, openLoop, reversed, encoder)
-#pragma config(Motor,  mtr_S1_C1_2,     M_DRIVE_FL,    tmotorTetrix, openLoop, reversed, encoder)
-#pragma config(Motor,  mtr_S1_C2_1,     M_BELT,        tmotorTetrix, openLoop, reversed)
-#pragma config(Motor,  mtr_S1_C2_2,     M_LIFT_L,    tmotorTetrix, openLoop, reversed, encoder)
-#pragma config(Motor,  mtr_S2_C2_1,     M_DRIVE_BR,    tmotorTetrix, openLoop, encoder)
-#pragma config(Motor,  mtr_S2_C2_2,     M_DRIVE_FR,    tmotorTetrix, openLoop, encoder)
-#pragma config(Motor,  mtr_S2_C3_1,     M_LIFT_R,    tmotorTetrix, openLoop, encoder)
-#pragma config(Motor,  mtr_S2_C3_2,     M_FLAG,        tmotorTetrix, openLoop)
-#pragma config(Servo,  srvo_S2_C1_1,    S_SCORE,              tServoContinuousRotation)
-#pragma config(Servo,  srvo_S2_C1_2,    S_HOOK,               tServoContinuousRotation)
-#pragma config(Servo,  srvo_S2_C1_3,    S_LID,                tServoStandard)
-#pragma config(Servo,  srvo_S2_C1_4,    servo4,               tServoNone)
-#pragma config(Servo,  srvo_S2_C1_5,    servo5,               tServoNone)
-#pragma config(Servo,  srvo_S2_C1_6,    servo6,               tServoNone)
 /*
 A few conventions:
 BTN/btn denotes a controller button, returns 1 if pressed, 0 otherwise (actually maybe they return booleans...)
@@ -49,6 +30,9 @@ lowerCase means a variable
 #define BTN_IGNORE_ENC joy2Btn(5) // ignores lifter encoder limits when held
 #define BTN_ZERO_LIFT joy2Btn(6) //reset the lift encoder values to zero
 #define BTN_SETMAX_LIFT joy2Btn(8) //sets max lift height
+#define BTN_STOP_LIFT joy2Btn(9) //stop lift raising or lowering
+#define BTN_RAISE_LIFT joystick.joy2_TopHat == 0 //raise lift to max
+#define BTN_LOWER_LIFT joystick.joy2_TopHat == 4 //lower lift to bottom
 #define JS_LIFT joystick.joy2_y1 //controls lift
 
 //both drivers
@@ -58,12 +42,6 @@ lowerCase means a variable
 #define ENC_LIFT_MAX 17000 //TODO: figure this out
 
 //go in the specified direction at the specified power
-
-void drive(int pwr_x, int pwr_y) {
-}
-
-
-
 void goForward (int pwr) {
   motor[M_DRIVE_FL] = pwr;
   motor[M_DRIVE_FR] = pwr;
