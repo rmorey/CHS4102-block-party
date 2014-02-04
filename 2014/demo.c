@@ -17,11 +17,11 @@
 #pragma config(Servo,  srvo_S2_C1_4,    servo4,               tServoNone)
 #pragma config(Servo,  srvo_S2_C1_5,    servo5,               tServoNone)
 #pragma config(Servo,  srvo_S2_C1_6,    servo6,               tServoNone)
+
 #include "robot.h"
 
 task main()
 {
-	bFloatDuringInactiveMotorPWM = false;
 	motor[M_BELT] = 100;
 	wait1Msec(3000);
 	motor[M_BELT] = -100;

@@ -5,6 +5,8 @@
 #pragma config(Motor,  mtr_S1_C2_2,     M_LIFT_L,    tmotorTetrix, openLoop, reversed, encoder)
 #pragma config(Motor,  mtr_S2_C3_1,     M_LIFT_R,    tmotorTetrix, openLoop, encoder)
 
+//lifter controls directly from the nxt
+
 task main()
 {
 	while(true) {

@@ -1,3 +1,22 @@
+#pragma config(Hubs,  S1, HTMotor,  HTMotor,  none,     none)
+#pragma config(Hubs,  S2, HTServo,  HTMotor,  HTMotor,  none)
+#pragma config(Sensor, S1,     ,               sensorI2CMuxController)
+#pragma config(Sensor, S2,     ,               sensorI2CMuxController)
+#pragma config(Sensor, S3,     IRsensor,       sensorHiTechnicIRSeeker1200)
+#pragma config(Motor,  mtr_S1_C1_1,     M_DRIVE_BL,    tmotorTetrix, openLoop, reversed, encoder)
+#pragma config(Motor,  mtr_S1_C1_2,     M_DRIVE_FL,    tmotorTetrix, openLoop, reversed, encoder)
+#pragma config(Motor,  mtr_S1_C2_1,     M_BELT,        tmotorTetrix, openLoop, reversed)
+#pragma config(Motor,  mtr_S1_C2_2,     M_LIFT_L,    tmotorTetrix, openLoop, reversed, encoder)
+#pragma config(Motor,  mtr_S2_C2_1,     M_DRIVE_BR,    tmotorTetrix, openLoop, encoder)
+#pragma config(Motor,  mtr_S2_C2_2,     M_DRIVE_FR,    tmotorTetrix, openLoop, encoder)
+#pragma config(Motor,  mtr_S2_C3_1,     M_LIFT_R,    tmotorTetrix, openLoop, encoder)
+#pragma config(Motor,  mtr_S2_C3_2,     M_FLAG,        tmotorTetrix, openLoop)
+#pragma config(Servo,  srvo_S2_C1_1,    S_SCORE,              tServoContinuousRotation)
+#pragma config(Servo,  srvo_S2_C1_2,    S_HOOK,               tServoContinuousRotation)
+#pragma config(Servo,  srvo_S2_C1_3,    S_LID,                tServoStandard)
+#pragma config(Servo,  srvo_S2_C1_4,    servo4,               tServoNone)
+#pragma config(Servo,  srvo_S2_C1_5,    servo5,               tServoNone)
+#pragma config(Servo,  srvo_S2_C1_6,    servo6,               tServoNone)
 /*
 A few conventions:
 BTN/btn denotes a controller button, returns 1 if pressed, 0 otherwise (actually maybe they return booleans...)
@@ -40,141 +59,152 @@ lowerCase means a variable
 
 //go in the specified direction at the specified power
 
-void goDirection(int pwr_x, int pwr_y) {
+void drive(int pwr_x, int pwr_y) {
 }
+
+
+
 void goForward (int pwr) {
-	motor[M_DRIVE_FL] = pwr;
-	motor[M_DRIVE_FR] = pwr;
-	motor[M_DRIVE_BR] = pwr;
-	motor[M_DRIVE_BL] = pwr;
+  motor[M_DRIVE_FL] = pwr;
+  motor[M_DRIVE_FR] = pwr;
+  motor[M_DRIVE_BR] = pwr;
+  motor[M_DRIVE_BL] = pwr;
 }
 void goBack (int pwr) {
-	goForward(-pwr);
+  goForward(-pwr);
 }
 void goRight (int pwr) {
-	motor[M_DRIVE_FL] = pwr;
-	motor[M_DRIVE_FR] = -pwr;
-	motor[M_DRIVE_BR] = pwr;
-	motor[M_DRIVE_BL] = -pwr;
+  motor[M_DRIVE_FL] = pwr;
+  motor[M_DRIVE_FR] = -pwr;
+  motor[M_DRIVE_BR] = pwr;
+  motor[M_DRIVE_BL] = -pwr;
 }
 void goLeft (int pwr) {
-	goRight(-pwr);
+  goRight(-pwr);
 }
 void goForwardRight (int pwr) {
-	motor[M_DRIVE_FL] = pwr;
-	motor[M_DRIVE_FR] = 0;
-	motor[M_DRIVE_BR] = pwr;
-	motor[M_DRIVE_BL] = 0;
+  motor[M_DRIVE_FL] = pwr;
+  motor[M_DRIVE_FR] = 0;
+  motor[M_DRIVE_BR] = pwr;
+  motor[M_DRIVE_BL] = 0;
 }
 void goBackLeft (int pwr) {
-	goForwardRight(-pwr);
+  goForwardRight(-pwr);
 }
 void goForwardLeft (int pwr) {
-	motor[M_DRIVE_FL] = 0;
-	motor[M_DRIVE_FR] = pwr;
-	motor[M_DRIVE_BR] = 0;
-	motor[M_DRIVE_BL] = pwr;
+  motor[M_DRIVE_FL] = 0;
+  motor[M_DRIVE_FR] = pwr;
+  motor[M_DRIVE_BR] = 0;
+  motor[M_DRIVE_BL] = pwr;
 }
 void goBackRight (int pwr) {
-	goForwardLeft(-pwr);
+  goForwardLeft(-pwr);
+}
+
+void driveStop() {
+  motor[M_DRIVE_FL] = 0;
+  motor[M_DRIVE_FR] = 0;
+  motor[M_DRIVE_BR] = 0;
+  motor[M_DRIVE_BL] = 0;
+}
+
+void liftStop() {
+  motor[M_LIFT_R] = 0;
+  motor[M_LIFT_L] = 0;
 }
 
 //stops all motors
 void haltAllMotors () {
-	motor[M_DRIVE_FL] = 0;
-	motor[M_DRIVE_FR] = 0;
-	motor[M_DRIVE_BR] = 0;
-	motor[M_DRIVE_BL] = 0;
-	motor[M_LIFT_R] = 0;
-	motor[M_LIFT_L] = 0;
-	motor[M_FLAG] = 0;
-	motor[M_BELT] = 0;
+  driveStop();
+  liftStop();
+  motor[M_FLAG] = 0;
+  motor[M_BELT] = 0;
 }
 
 
 void raiseLift() {
-	while (nMotorEncoder[M_LIFT_R] < ENC_LIFT_MAX) {
-		motor[M_LIFT_L] = 100;
-		motor[M_LIFT_R] = 100;
-	}
-	motor[M_LIFT_L] = 0;
-	motor[M_LIFT_R] = 0;
+  while (nMotorEncoder[M_LIFT_R] < ENC_LIFT_MAX) {
+    motor[M_LIFT_L] = 100;
+    motor[M_LIFT_R] = 100;
+  }
+  motor[M_LIFT_L] = 0;
+  motor[M_LIFT_R] = 0;
 }
 
 void lowerLift() {
-	while (nMotorEncoder[M_LIFT_R] > 0) {
-		motor[M_LIFT_L] = -100;
-		motor[M_LIFT_R] = -100;
-	}
-	motor[M_LIFT_L] = 0;
-	motor[M_LIFT_R] = 0;
+  while (nMotorEncoder[M_LIFT_R] > 0) {
+    motor[M_LIFT_L] = -100;
+    motor[M_LIFT_R] = -100;
+  }
+  motor[M_LIFT_L] = 0;
+  motor[M_LIFT_R] = 0;
 }
 
 
 //raise and lower lift using time, kinda sketch..
 void raiseLiftTime() {
-	motor[M_LIFT_L] = 100;
-	motor[M_LIFT_R] = 100;
-	wait1Msec(6000);
-	motor[M_LIFT_L] = 0;
-	motor[M_LIFT_R] = 0;
+  motor[M_LIFT_L] = 100;
+  motor[M_LIFT_R] = 100;
+  wait1Msec(6000);
+  motor[M_LIFT_L] = 0;
+  motor[M_LIFT_R] = 0;
 }
 
 void lowerLiftTime() {
-	motor[M_LIFT_L] = -25;
-	motor[M_LIFT_R] = -25;
-	wait1Msec(9000);
-	motor[M_LIFT_L] = 0;
-	motor[M_LIFT_R] = 0;
+  motor[M_LIFT_L] = -25;
+  motor[M_LIFT_R] = -25;
+  wait1Msec(9000);
+  motor[M_LIFT_L] = 0;
+  motor[M_LIFT_R] = 0;
 }
 
 //pushes blocks out and brings pusher back in
 void scoreBlocks() {
-	servo[S_SCORE] = 0;
-	wait1Msec(1400);
-	servo[S_SCORE] = 255;
-	wait1Msec(1400);
-	servo[S_SCORE] = 128;
+  servo[S_SCORE] = 0;
+  wait1Msec(1400);
+  servo[S_SCORE] = 255;
+  wait1Msec(1400);
+  servo[S_SCORE] = 128;
 }
 
 void approachAndScore() {
-	// approach lift, score, retreat
-	nMotorEncoder[M_LIFT_R] = 0;
+  // approach lift, score, retreat
+  nMotorEncoder[M_LIFT_R] = 0;
 
-	goForward(40);
-	wait1Msec(900);
-	haltAllMotors();
-	wait1Msec(10);
+  goForward(40);
+  wait1Msec(900);
+  haltAllMotors();
+  wait1Msec(10);
 
-	raiseLiftTime();
+  raiseLiftTime();
 
-	wait1Msec(50);
+  wait1Msec(50);
 
-	scoreBlocks();
+  scoreBlocks();
 
 
-	//while (nMotorEncoder[M_LIFT_R] < 16000) {
-	//	motor[M_LIFT_L] = 100;
-	//	motor[M_LIFT_R] = 100;
-	//}
-	//motor[M_LIFT_L] = 0;
-	//motor[M_LIFT_R] = 0;
-	//wait1Msec(50);
+  //while (nMotorEncoder[M_LIFT_R] < 16000) {
+  //	motor[M_LIFT_L] = 100;
+  //	motor[M_LIFT_R] = 100;
+  //}
+  //motor[M_LIFT_L] = 0;
+  //motor[M_LIFT_R] = 0;
+  //wait1Msec(50);
 
-	//scoreBlocks();
-	//wait1Msec(50);
+  //scoreBlocks();
+  //wait1Msec(50);
 
-	while (nMotorEncoder[M_LIFT_R] > 6000) {
-		motor[M_LIFT_L] = -100;
-		motor[M_LIFT_R] = -100;
-	}
-	motor[M_LIFT_L] = 0;
-	motor[M_LIFT_R] = 0;
+  while (nMotorEncoder[M_LIFT_R] > 6000) {
+    motor[M_LIFT_L] = -100;
+    motor[M_LIFT_R] = -100;
+  }
+  motor[M_LIFT_L] = 0;
+  motor[M_LIFT_R] = 0;
 
-	wait1Msec(200);
+  wait1Msec(200);
 
-	goBack(40);
-	wait1Msec(900);
+  goBack(40);
+  wait1Msec(900);
 
-	haltAllMotors();
+  haltAllMotors();
 }

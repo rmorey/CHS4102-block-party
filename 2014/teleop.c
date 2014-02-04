@@ -26,6 +26,7 @@
 #define PWR_DRIVE 100
 #define PWR_ROTATE 100
 #define SRV_HOOK 30
+#define JS_THRESH 5 //slippage threshold
 
 int drive_direction = 1; //1 for forwards, -1 for backwards
 bool tilted_drive = false;
@@ -35,7 +36,7 @@ int pwr_FL = 0;
 int pwr_BR = 0;
 int pwr_BL = 0;
 int pwr_lift = 0;
-
+int enc_lift_max = ENC_LIFT_MAX;
 
 void InitializeRobot (){
   nMotorEncoder[M_LIFT_R] = 0;
@@ -44,15 +45,24 @@ void InitializeRobot (){
 }
 
 task DriveUpdate() {
-  //Drive control and lift control update loop
+  //Drive control update loop
   while (true) {
     getJoystickSettings(joystick);
 
+    int js_drive_x = JS_DRIVE_X;
+    int js_drive_y = JS_DRIVE_Y;
+    int js_rotate = JS_ROTATE;
+
+    //slippage control
+    if (abs(js_drive_x) < JS_THRESH) js_drive_x = 0;
+    if (abs(js_drive_y) < JS_THRESH) js_drive_y = 0;
+    if (abs(js_rotate) < JS_THRESH) js_rotate = 0;
+
     if (tilted_drive) { //titled drive mode, the flag spinner is onsidered the front of the robot
-      pwr_FR = (PWR_DRIVE * JS_DRIVE_Y) / 127.0 - PWR_ROTATE*JS_ROTATE/127.0;
-      pwr_FL = (PWR_DRIVE * JS_DRIVE_X) / 127.0 + PWR_ROTATE*JS_ROTATE/127.0;
-      pwr_BR = (PWR_DRIVE * JS_DRIVE_X) / 127.0 - PWR_ROTATE*JS_ROTATE/127.0;
-      pwr_BL = (PWR_DRIVE * JS_DRIVE_Y) / 127.0 + PWR_ROTATE*JS_ROTATE/127.0;
+      pwr_FR = (PWR_DRIVE * js_drive_y) / 127.0 - PWR_ROTATE*js_rotate/127.0;
+      pwr_FL = (PWR_DRIVE * js_drive_x) / 127.0 + PWR_ROTATE*js_rotate/127.0;
+      pwr_BR = (PWR_DRIVE * js_drive_x) / 127.0 - PWR_ROTATE*js_rotate/127.0;
+      pwr_BL = (PWR_DRIVE * js_drive_y) / 127.0 + PWR_ROTATE*js_rotate/127.0;
     }
 
     else {  //standard omniwheel drive
@@ -62,24 +72,10 @@ task DriveUpdate() {
       //pwr_BR = drive_direction*.557*(JS_DRIVE_Y + JS_DRIVE_X - JS_ROTATE);
       //pwr_BL = drive_direction*.557*(JS_DRIVE_Y - JS_DRIVE_X + JS_ROTATE);
 
-      pwr_FR = drive_direction*(JS_DRIVE_Y - JS_DRIVE_X - drive_direction*JS_ROTATE);
-      pwr_FL = drive_direction*(JS_DRIVE_Y + JS_DRIVE_X + drive_direction*JS_ROTATE);
-      pwr_BR = drive_direction*(JS_DRIVE_Y + JS_DRIVE_X - drive_direction*JS_ROTATE);
-      pwr_BL = drive_direction*(JS_DRIVE_Y - JS_DRIVE_X + drive_direction*JS_ROTATE);
-    }
-
-    //slippage control
-    if (abs(pwr_FR) < 10) {
-      pwr_FR = 0;
-    }
-    if (abs(pwr_FL) < 10) {
-      pwr_FL = 0;
-    }
-    if (abs(pwr_BR) < 10) {
-      pwr_BR = 0;
-    }
-    if (abs(pwr_BL) < 10) {
-      pwr_BL = 0;
+      pwr_FR = drive_direction*(js_drive_y - js_drive_x - drive_direction*js_rotate);
+      pwr_FL = drive_direction*(js_drive_y + js_drive_x + drive_direction*js_rotate);
+      pwr_BR = drive_direction*(js_drive_y + js_drive_x - drive_direction*js_rotate);
+      pwr_BL = drive_direction*(js_drive_y - js_drive_x + drive_direction*js_rotate);
     }
 
     motor[M_DRIVE_FR] = pwr_FR;
@@ -95,10 +91,13 @@ task LiftUpdate() {
   while(true) {
     //lift control
     int js_lift = JS_LIFT;
-    if (abs(js_lift) < 5) js_lift = 0; //slippage control
-      int enc_R_lift = nMotorEncoder[M_LIFT_R];
+
+    if (abs(js_lift) < JS_THRESH) js_lift = 0;
+
+    int enc_R_lift = nMotorEncoder[M_LIFT_R];
     nxtDisplayString(0, "%8d", nMotorEncoder[M_LIFT_R]);
-    if (!BTN_ENC_IGNORE && ((enc_R_lift < 0 && js_lift < 0) || (enc_R_lift > ENC_LIFT_MAX && js_lift > 0))) {
+
+    if (!BTN_IGNORE_ENC && ((enc_R_lift < 0 && js_lift < 0) || (enc_R_lift > enc_lift_max && js_lift > 0))) {
       pwr_lift = 0;
     }
     else {
@@ -132,8 +131,6 @@ task main() {
       motor[M_BELT] = 100;
       getJoystickSettings(joystick);
     }
-    motor[M_BELT] = 0;
-
     while (BTN_BELT_OUT) {
       motor[M_BELT] = -100;
       getJoystickSettings(joystick);
@@ -146,10 +143,8 @@ task main() {
       servo[S_LID] = 250;
       lid_closed = false;
       scoreBlocks();
-
       wait1Msec(500);
     }
-
 
     // Global motor kill
     if(BTN_KILL) haltAllMotors();
@@ -169,7 +164,6 @@ task main() {
       drive_direction = 1;
     }
 
-
     //flag control hold button to run flag spinner
     while (BTN_FLAG) {
       motor[M_FLAG] = 100;
@@ -178,20 +172,23 @@ task main() {
     motor[M_FLAG] = 0;
 
     //reset lift encoder to zero
-    if (BTN_ZERO) nMotorEncoder[M_LIFT_R] = 0;
+    if (BTN_ZERO_LIFT) nMotorEncoder[M_LIFT_R] = 0;
 
-    //hook contrlol
+    //sets max lift height to current height
+    if (BTN_SETMAX_LIFT) enc_lift_max = nMotorEncoder[M_LIFT_R];
+
+    //hook control
     while (BTN_HOOK_OUT) {
       servo[S_HOOK] = 64;
       getJoystickSettings(joystick);
     }
-
     while (BTN_HOOK_IN) {
       servo[S_HOOK] = 192;
       getJoystickSettings(joystick);
     }
     servo[M_FLAG] = 128;
 
+    //block stopper control
     if (BTN_LID) {
       if (lid_closed) {
         servo[S_LID] = 250;
