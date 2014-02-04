@@ -58,7 +58,6 @@ task main()
   }
 
   eraseDisplay();
-
   nxtDisplayCenteredBigTextLine(0, "Block, ramp, or both?");
   nxtDisplayCenteredBigTextLine(7, "Block Both Ramp");
 
@@ -79,7 +78,6 @@ task main()
   }
 
   eraseDisplay();
-
   nxtDisplayCenteredBigTextLine(0, "Wait for Start?");
   nxtDisplayCenteredBigTextLine(7, "Yes    No");
 
@@ -95,15 +93,15 @@ task main()
   }
 
   eraseDisplay();
-
   nxtDisplayCenteredBigTextLine(0, "Ready?");
   nxtDisplayCenteredBigTextLine(7, "Go!");
 
-  pressed = getButton();
+  pressed = getButton(); // we don't really need the value of this press, we just wait for a press to start
 
   if (wait) waitForStart();
 
-  if (do_ramp && !score_block) { //just get on ramp
+  if (do_ramp && !score_block) {
+    //just get on ramp
     goForward(100);
     wait1Msec(900);
     if (start_on_right) goLeft(100); else goRight(100);
@@ -131,6 +129,7 @@ task main()
 
     if (do_ramp) {
 
+      //go remaining distance TODO: return on closest side
       if (start_on_right) goLeft(2.5*PWR_SCAN); else goRight(2.5*PWR_SCAN);
       wait1Msec(time_remaining / 2.5);
       driveStop();
