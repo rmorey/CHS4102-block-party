@@ -41,6 +41,48 @@ int getButton() { //gets next button press
 
   return pressed;
 }
+void approachAndScore() {
+  // approach lift, score, retreat
+  nMotorEncoder[M_LIFT_R] = 0;
+
+  goForward(40);
+  wait1Msec(900);
+  haltAllMotors();
+  wait1Msec(10);
+
+  raiseLiftTime();
+
+  wait1Msec(50);
+
+  scoreBlocks();
+
+
+  //while (nMotorEncoder[M_LIFT_R] < 16000) {
+  //	motor[M_LIFT_L] = 100;
+  //	motor[M_LIFT_R] = 100;
+  //}
+  //motor[M_LIFT_L] = 0;
+  //motor[M_LIFT_R] = 0;
+  //wait1Msec(50);
+
+  //scoreBlocks();
+  //wait1Msec(50);
+
+  while (nMotorEncoder[M_LIFT_R] > 6000) {
+    motor[M_LIFT_L] = -100;
+    motor[M_LIFT_R] = -100;
+  }
+  motor[M_LIFT_L] = 0;
+  motor[M_LIFT_R] = 0;
+
+  wait1Msec(200);
+
+  goBack(40);
+  wait1Msec(900);
+
+  haltAllMotors();
+}
+
 
 task main()
 {
