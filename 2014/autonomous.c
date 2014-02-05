@@ -20,6 +20,7 @@
 #include "JoystickDriver.c"
 #include "robot.h"
 
+//because i always forget which is which
 #define RIGHT 1
 #define LEFT 2
 #define ORANGE 3
