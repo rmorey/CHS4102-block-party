@@ -100,6 +100,12 @@ void haltAllMotors () {
 	motor[M_BELT] = 0;
 }
 
+void powerLift(int pwr) {
+	//powers both lift motors
+	motor[M_LIFT_L] = pwr;
+	motor[M_LIFT_R] = pwr;
+}
+
 void drive(int pwr_x, int pwr_y) {
 	//uses rotation matrix to drive bot, maintains uniform power in all directions
 	int pwr_x_rot = .7071*(pwr_x + pwr_y);
@@ -109,6 +115,16 @@ void drive(int pwr_x, int pwr_y) {
 	motor[M_DRIVE_FR] = pwr_y_rot;
 	motor[M_DRIVE_BL] = pwr_y_rot;
 }
+
+void driveTilted(int pwr_x, int pwr_y) {
+	//drives with FL corner as front of bot
+	motor[M_DRIVE_FL] = pwr_x;
+	motor[M_DRIVE_BR] = pwr_x;
+	motor[M_DRIVE_FR] = pwr_y;
+	motor[M_DRIVE_BL] = pwr_y;
+}
+
+
 
 void driveAngle(int pwr, float angle) {
 	//drive bot at pwr at angle, measured clockwise with 0degrees at front
