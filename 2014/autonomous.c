@@ -118,34 +118,40 @@ task main()
 		//score block in IR goal
 		if (start_on_right) pwr_x = -PWR_SCAN; else pwr_x = PWR_SCAN;
 		driveTilted(pwr_x, pwr_y);
-		while (time1[T2] < TIME_SCAN) { //should reach last bin
+		while (SensorValue[SONAR] < 50) { //should reach last bin
 			if (SensorValue[IR] == 5) { //we see the IR beacon
 				driveStop();
+				//score block here
 				break;
 			}
-			int err = 20 - SensorValue[SONAR]; //20cm is our target distance
+			int err = 10 - SensorValue[SONAR]; //10cm is our target distance
 			if (abs(err) > 10) {
 				pwr_y = 0; //ignore if error is really big, we're probably doing something wrong
 			}
 			else {
-				pwr_y = -2*err; //try to correct for error
+				pwr_y = -2*err; //try to correct for error, maybe change this value
 			}
 			driveTilted(pwr_x, pwr_y);
 		}
 
-		//score block
-
-
 		if (ramp) {
 
 			//go remaining distance TODO: return on closest side
-			if (start_on_right) goLeft(2.5*PWR_SCAN); else goRight(2.5*PWR_SCAN);
-			wait1Msec(time_remaining / 2.5);
+			if (start_on_right) pwr_x = -2.5*PWR_SCAN; else pwr_x = 2.5*PWR_SCAN;
+			driveTilted(pwr_x, pwr_y);
+			while(SensorValue[SONAR] < 50) {
+				int err = 10 - SensorValue[SONAR]; //10cm is our target distance
+				if (abs(err) > 10) {
+					pwr_y = 0; //ignore if error is really big, we're probably doing something wrong
+				}
+				else {
+					pwr_y = -2*err; //try to correct for error, maybe change this value
+				}
+				driveTilted(pwr_x, pwr_y);
+			}
 			driveStop();
 
 			//get on ramp
-			if (start_on_right) goLeft(100); else goRight(100);
-			wait1Msec(500);
 
 			goForward(100);
 			wait1Msec(900);
