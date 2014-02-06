@@ -25,7 +25,7 @@
 #define PWR_DRIVE 100
 #define PWR_ROTATE 100
 #define JS_THRESH 5 //slippage threshold
-#define JS_SCALE 127 //scaling factor for joysticks
+#define JS_SCALE (100.0/127) //scaling factor for joysticks
 
 int drive_direction = 1; //1 for forwards, -1 for backwards
 bool tilted_drive = false;
@@ -48,9 +48,9 @@ task DriveUpdate() {
 	while (true) {
 		getJoystickSettings(joystick);
 
-		int js_drive_x = JS_DRIVE_X;
-		int js_drive_y = JS_DRIVE_Y;
-		int js_rotate = JS_ROTATE;
+		int js_drive_x = JS_DRIVE_X*JS_SCALE;
+		int js_drive_y = JS_DRIVE_Y*JS_SCALE;
+		int js_rotate = JS_ROTATE*JS_SCALE;
 
 		//slippage control
 		if (abs(js_drive_x) < JS_THRESH) js_drive_x = 0;
@@ -58,18 +58,18 @@ task DriveUpdate() {
 		if (abs(js_rotate) < JS_THRESH) js_rotate = 0;
 
 		if (tilted_drive) { //titled drive mode, the flag spinner is onsidered the front of the robot
-			pwr_FR = PWR_DRIVE*(js_drive_y/JS_SCALE) - PWR_ROTATE*(js_rotate/JS_SCALE);
-			pwr_FL = PWR_DRIVE*(js_drive_x/JS_SCALE) + PWR_ROTATE*(js_rotate/JS_SCALE);
-			pwr_BR = PWR_DRIVE*(js_drive_y/JS_SCALE) - PWR_ROTATE*(js_rotate/JS_SCALE);
-			pwr_BL = PWR_DRIVE*(js_drive_y/JS_SCALE) + PWR_ROTATE*(js_rotate/JS_SCALE);
+			pwr_FR = js_drive_y - js_rotate;
+			pwr_FL = js_drive_x + js_rotate;
+			pwr_BR = js_drive_x - js_rotate;
+			pwr_BL = js_drive_y + js_rotate;
 		}
 
 		else {  //standard omniwheel drive
 
-			pwr_FR = PWR_DRIVE*drive_direction*(js_drive_y/JS_SCALE - js_drive_x/JS_SCALE - drive_direction*js_rotate/JS_SCALE);
-			pwr_FL = drive_direction*(js_drive_y/JS_SCALE + js_drive_x/JS_SCALE + drive_direction*js_rotate);
-			pwr_BR = drive_direction*(js_drive_y/JS_SCALE + js_drive_x/JS_SCALE - drive_direction*js_rotate);
-			pwr_BL = drive_direction*(js_drive_y/JS_SCALE - js_drive_x/JS_SCALE + drive_direction*js_rotate);
+			pwr_FR = drive_direction*(js_drive_y - js_drive_x - drive_direction*js_rotate);
+			pwr_FL = drive_direction*(js_drive_y + js_drive_x + drive_direction*js_rotate);
+			pwr_BR = drive_direction*(js_drive_y + js_drive_x - drive_direction*js_rotate);
+			pwr_BL = drive_direction*(js_drive_y - js_drive_x + drive_direction*js_rotate);
 		}
 
 		motor[M_DRIVE_FR] = pwr_FR;
