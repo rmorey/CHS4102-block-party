@@ -98,9 +98,9 @@ task main()
 	nxtDisplayCenteredBigTextLine(7, "Go!");
 	pressed = getButton(); // we don't really need the value of this press, we just wait for a press to start
 
-	/////////////////////////////////////////////////////////
-	////code that actually runs during match starts here/////
-	/////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////
+	////code that actually runs during match starts here////
+	////////////////////////////////////////////////////////
 	if (wait) waitForStart();
 
 	ClearTimer(T1); //keeps track of autonomous period, 30000 ms long
