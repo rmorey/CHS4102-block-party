@@ -21,11 +21,6 @@
 #include "JoystickDriver.c"
 #include "robot.h"
 
-//because i always forget which is which
-#define RIGHT 1
-#define LEFT 2
-#define ORANGE 3
-
 #define PWR_SCAN 30
 #define ENC_LAST_GOAL 10000 //distance to last goal
 
@@ -33,74 +28,107 @@ bool start_on_right;
 bool ramp;
 bool block;
 bool wait;
-int pressed;
+TButtons nBtn;
 int pwr_x = 0;
 int pwr_y = 0;
 
-int getButton() { //gets next button press
-	do {
-		pressed = nNxtButtonPressed;
-	} while (pressed == -1);
-	return pressed;
+void getButton() { //gets next button press
+	while (true) // wait for button press
+	{
+		nBtn = nNxtButtonPressed;
+		if (nBtn != -1)
+			break;
+	}
+	PlaySoundFile("! Click.rso");
+	wait1Msec(500);
+
 }
 
 task main()
 {
+	nNxtButtonTask  = -2; //hijacks button control
+	nNxtExitClicks  = 1;
+	//disableDiagnosticsDisplay();
+	hogCPU();
 	eraseDisplay();
-	nxtDisplayCenteredBigTextLine(0, "Which side?");
-	nxtDisplayCenteredBigTextLine(7, "Left     Right");
-	pressed = getButton();
+	nxtDisplayCenteredTextLine(0, "Which side?");
+	nxtDisplayCenteredTextLine(7, "Left     Right");
+	while (true) // wait for button press
+	{
+		nBtn = nNxtButtonPressed;
+		if (nBtn != -1)
+			break;
+	}
+	wait1Msec(500);
 
-	switch (pressed) {
-	case RIGHT:
+	switch (nBtn) {
+	case kRightButton:
 		start_on_right = true;
-	case LEFT:
+		break;
+	case kLeftButton:
 		start_on_right = false;
+		break;
 	default:
-		StopAllTasks();
+		break;
 	}
 
 	eraseDisplay();
-	nxtDisplayCenteredBigTextLine(0, "Block, ramp, or both?");
-	nxtDisplayCenteredBigTextLine(7, "Block Both Ramp");
-	pressed = getButton();
+	nxtDisplayCenteredTextLine(0, "Block, ramp, or both?");
+	nxtDisplayCenteredTextLine(7, "Block Both Ramp");
+	getButton();
 
-	switch (pressed) {
-	case RIGHT:
+	switch (nBtn) {
+	case kRightButton:
 		ramp = true;
 		block = false;
-	case LEFT:
+		break;
+	case kLeftButton:
 		ramp = false;
 		block = true;
-	case ORANGE:
+		break;
+	case kEnterButton:
 		ramp = true;
 		block = true;
+		break;
 	default:
 		StopAllTasks();
 	}
 
 	eraseDisplay();
-	nxtDisplayCenteredBigTextLine(0, "Wait for Start?");
-	nxtDisplayCenteredBigTextLine(7, "Yes    No");
-	pressed = getButton();
+	nxtDisplayCenteredTextLine(0, "Wait for Start?");
+	nxtDisplayCenteredTextLine(7, "Yes    No");
+	getButton();
 
-	switch (pressed) {
-	case RIGHT:
+	switch (nBtn) {
+	case kRightButton:
 		wait = false;
-	case LEFT:
+		break;
+	case kLeftButton:
 		wait = true;
+		break;
 	default:
 		StopAllTasks();
 	}
 
 	eraseDisplay();
-	nxtDisplayCenteredBigTextLine(0, "Ready?");
-	nxtDisplayCenteredBigTextLine(7, "Go!");
-	pressed = getButton(); // we don't really need the value of this press, we just wait for a press to start
+	nxtDisplayCenteredTextLine(0, "Ready?");
+	nxtDisplayCenteredTextLine(7, "Go!");
+	getButton();
 
-	////////////////////////////////////////////////////////
-	////code that actually runs during match starts here////
-	////////////////////////////////////////////////////////
+	switch (nBtn) {
+	case kEnterButton:
+		break;
+	default:
+		StopAllTasks();
+	}
+
+	/////////////////////////////////////////////////////////
+	////code that actually runs during match starts here/////
+	/////////////////////////////////////////////////////////
+	eraseDisplay();
+	releaseCPU();
+	eraseDisplay();
+	wait1Msec(50);
 	if (wait) waitForStart();
 
 	ClearTimer(T1); //keeps track of autonomous period, 30000 ms long
@@ -118,13 +146,16 @@ task main()
 		//score block in IR goal
 		if (start_on_right) pwr_x = -PWR_SCAN; else pwr_x = PWR_SCAN;
 		driveTilted(pwr_x, pwr_y);
-		while (SensorValue[SONAR] < 50) { //should reach last bin
+		while (SensorValue[SONAR] < 100) { //stops at edge of thing, TODO: make this use encoders
 			if (SensorValue[IR] == 5) { //we see the IR beacon
 				driveStop();
-				//score block here
+				servo[S_AUTO] = 250;
+				wait1Msec(1000);
+				servo[S_AUTO] = 0;
 				break;
+
 			}
-			int err = 10 - SensorValue[SONAR]; //10cm is our target distance
+			int err = 28 - SensorValue[SONAR]; //10cm is our target distance
 			if (abs(err) > 10) {
 				pwr_y = 0; //ignore if error is really big, we're probably doing something wrong
 			}
@@ -137,16 +168,18 @@ task main()
 		if (ramp) {
 
 			//go remaining distance TODO: return on closest side
-			if (start_on_right) pwr_x = -2.5*PWR_SCAN; else pwr_x = 2.5*PWR_SCAN;
+			if (start_on_right)
+				pwr_x = -2.5*PWR_SCAN;
+			else
+				pwr_x = 2.5*PWR_SCAN;
+
 			driveTilted(pwr_x, pwr_y);
-			while(SensorValue[SONAR] < 50) {
+			while(SensorValue[SONAR] < 50) {  //TODO: make this use encoders
 				int err = 10 - SensorValue[SONAR]; //10cm is our target distance
-				if (abs(err) > 10) {
-					pwr_y = 0; //ignore if error is really big, we're probably doing something wrong
-				}
-				else {
+				if (abs(err) > 10)
+					pwr_y = 0; //ignore if error is really big, we're probably doing something wrong...
+				else
 					pwr_y = -2*err; //try to correct for error, maybe change this value
-				}
 				driveTilted(pwr_x, pwr_y);
 			}
 			driveStop();

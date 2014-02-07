@@ -18,20 +18,17 @@
 #pragma config(Servo,  srvo_S2_C1_4,    S_AUTO,               tServoStandard)
 #pragma config(Servo,  srvo_S2_C1_5,    servo5,               tServoNone)
 #pragma config(Servo,  srvo_S2_C1_6,    servo6,               tServoNone)
-//lifter controls directly from the nxt
+//belt controls directly from the nxt
 
 task main()
 {
 	while(true) {
 		while (nNxtButtonPressed == kButtonRight) {
-			motor[M_LIFT_R] = 100;
-			motor[M_LIFT_L] = 100;
+			motor[M_BELT] = 100;
 		}
 		while (nNxtButtonPressed == kButtonLeft) {
-			motor[M_LIFT_R] = -100;
-			motor[M_LIFT_L] = -100;
+			motor[M_BELT] = -100;
 		}
-		motor[M_LIFT_R] = 0;
-		motor[M_LIFT_L] = 0;
+		motor[M_BELT] = 0;
 	}
 }
