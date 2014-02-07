@@ -21,9 +21,6 @@
 #include "JoystickDriver.c"
 #include "robot.h"
 
-//because i always forget which is which
-
-
 #define PWR_SCAN 30
 #define ENC_LAST_GOAL 10000 //distance to last goal
 
@@ -40,7 +37,6 @@ void getButton() { //gets next button press
 	{
 		nBtn = nNxtButtonPressed;
 		if (nBtn != -1)
-
 			break;
 	}
 	PlaySoundFile("! Click.rso");
@@ -50,7 +46,7 @@ void getButton() { //gets next button press
 
 task main()
 {
-	nNxtButtonTask  = -2;
+	nNxtButtonTask  = -2; //hijacks button control
 	nNxtExitClicks  = 1;
 	//disableDiagnosticsDisplay();
 	hogCPU();
@@ -117,7 +113,7 @@ task main()
 	eraseDisplay();
 	nxtDisplayCenteredTextLine(0, "Ready?");
 	nxtDisplayCenteredTextLine(7, "Go!");
-	getButton(); // we don't really need the value of this press, we just wait for a press to start
+	getButton();
 
 	switch (nBtn) {
 	case kEnterButton:
@@ -132,7 +128,7 @@ task main()
 	eraseDisplay();
 	releaseCPU();
 	eraseDisplay();
-	wait1Msec(500);
+	wait1Msec(50);
 	if (wait) waitForStart();
 
 	ClearTimer(T1); //keeps track of autonomous period, 30000 ms long
@@ -150,15 +146,17 @@ task main()
 		//score block in IR goal
 		if (start_on_right) pwr_x = -PWR_SCAN; else pwr_x = PWR_SCAN;
 		driveTilted(pwr_x, pwr_y);
-		while (SensorValue[SONAR] < 100) { //should reach last bin
+		while (SensorValue[SONAR] < 100) { //stops at edge of thing, TODO: make this use encoders
 			if (SensorValue[IR] == 5) { //we see the IR beacon
 				driveStop();
 				servo[S_AUTO] = 250;
+				wait1Msec(1000);
+				servo[S_AUTO] = 0;
 				break;
 
 			}
 			int err = 28 - SensorValue[SONAR]; //10cm is our target distance
-			if (abs(err) > 10)\ {
+			if (abs(err) > 10) {
 				pwr_y = 0; //ignore if error is really big, we're probably doing something wrong
 			}
 			else {
@@ -170,16 +168,18 @@ task main()
 		if (ramp) {
 
 			//go remaining distance TODO: return on closest side
-			if (start_on_right) pwr_x = -2.5*PWR_SCAN; else pwr_x = 2.5*PWR_SCAN;
+			if (start_on_right)
+				pwr_x = -2.5*PWR_SCAN;
+			else
+				pwr_x = 2.5*PWR_SCAN;
+
 			driveTilted(pwr_x, pwr_y);
-			while(SensorValue[SONAR] < 50) {
+			while(SensorValue[SONAR] < 50) {  //TODO: make this use encoders
 				int err = 10 - SensorValue[SONAR]; //10cm is our target distance
-				if (abs(err) > 10) {
-					pwr_y = 0; //ignore if error is really big, we're probably doing something wrong
-				}
-				else {
+				if (abs(err) > 10)
+					pwr_y = 0; //ignore if error is really big, we're probably doing something wrong...
+				else
 					pwr_y = -2*err; //try to correct for error, maybe change this value
-				}
 				driveTilted(pwr_x, pwr_y);
 			}
 			driveStop();
