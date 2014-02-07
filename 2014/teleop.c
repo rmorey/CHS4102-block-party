@@ -161,95 +161,98 @@ task ScorerButtons() {
 				lid_closed =false;
 			}
 			else {
+				if (nMotorEncoder[M_LIFT_R} > 6000){
 				servo[S_LID] = 0;
 				lid_closed = true;
 			}
-			wait1Msec(500);
 		}
-
-		if(joy2Btn(7)) {
-			servo[S_AUTO] = 256;
-		}
-
-		EndTimeSlice();
+		wait1Msec(500);
 	}
+
+	if(joy2Btn(7)) {
+		servo[S_AUTO] = 256;
+	}
+
+	EndTimeSlice();
+}
 }
 
-
-
-
-
 task LiftUpdate() {
-	//lift control update loop
-	while(true) {
+//lift control update loop
+while(true) {
 
-		//buttons to go straight to top/bottom
-		if (BTN_RAISE_LIFT) {
-			motor[M_LIFT_L] = 100;
-			motor[M_LIFT_R] = 100;
-			while (!BTN_STOP_LIFT && nMotorEncoder[M_LIFT_R] < enc_lift_max) {
-				getJoystickSettings(joystick);
-			}
-			liftStop();
+	//buttons to go straight to top/bottom
+	if (BTN_RAISE_LIFT) {
+		motor[M_LIFT_L] = 100;
+		motor[M_LIFT_R] = 100;
+		while (!BTN_STOP_LIFT && nMotorEncoder[M_LIFT_R] < enc_lift_max) {
+			getJoystickSettings(joystick);
 		}
-
-		if (BTN_LOWER_LIFT) {
-			motor[M_LIFT_L] = -100;
-			motor[M_LIFT_R] = -100;
-			while (!BTN_STOP_LIFT && nMotorEncoder[M_LIFT_R] > 0) {
-				getJoystickSettings(joystick);
-			}
-			liftStop();
-		}
-
-		int js_lift = JS_LIFT;
-		if (abs(js_lift) < JS_THRESH) js_lift = 0;
-
-		int enc_R_lift = nMotorEncoder[M_LIFT_R];
-		nxtDisplayString(0, "%8d", nMotorEncoder[M_LIFT_R]);
-
-		if (!BTN_IGNORE_ENC && ((enc_R_lift < 0 && js_lift < 0) || (enc_R_lift > enc_lift_max && js_lift > 0))) {
-			pwr_lift = 0;
-		}
-		else {
-			pwr_lift = PWR_LIFT*(js_lift/JS_SCALE);
-		}
-
-		motor[M_LIFT_L] = pwr_lift;
-		motor[M_LIFT_R] = pwr_lift;
-
-		EndTimeSlice();
+		liftStop();
 	}
+
+	if (BTN_LOWER_LIFT) {
+		motor[M_LIFT_L] = -100;
+		motor[M_LIFT_R] = -100;
+		while (!BTN_STOP_LIFT && nMotorEncoder[M_LIFT_R] > 0) {
+			getJoystickSettings(joystick);
+		}
+		liftStop();
+	}
+
+	int js_lift = JS_LIFT;
+	if (abs(js_lift) < JS_THRESH) js_lift = 0;
+
+	int enc_R_lift = nMotorEncoder[M_LIFT_R];
+	nxtDisplayString(0, "%8d", nMotorEncoder[M_LIFT_R]);
+
+	if (!BTN_IGNORE_ENC && ((enc_R_lift < 0 && js_lift < 0) || (enc_R_lift > enc_lift_max && js_lift > 0))) {
+		pwr_lift = 0;
+	}
+	else {
+		pwr_lift = PWR_LIFT*(js_lift/JS_SCALE);
+	}
+
+	motor[M_LIFT_L] = pwr_lift;
+	motor[M_LIFT_R] = pwr_lift;
+
+	if (nMotorEncoder[M_LIFT_R] == 6000 && pwr_lift > 0) { //should be just above lexan thing, maybe make this fuzzy
+		servo[S_LID] = 0; //close block stopper
+		wait1Msec(50);
+	}
+
+	EndTimeSlice();
+}
 }
 
 
 task main() {
-	InitializeRobot();
-	waitForStart();
+InitializeRobot();
+waitForStart();
 
-	StartTask(DriveUpdate);
-	StartTask(LiftUpdate);
-	StartTask(DriverButtons);
-	StartTask(ScorerButtons);
+StartTask(DriveUpdate);
+StartTask(LiftUpdate);
+StartTask(DriverButtons);
+StartTask(ScorerButtons);
 
-	while(true) {
-		getJoystickSettings(joystick);
+while(true) {
+	getJoystickSettings(joystick);
 
-		if(bDisconnected) { //kills motors and program if connection is lost
-			haltAllMotors();
-			StopAllTasks();
-		}
-
-		// Global motor kill
-		if (BTN_KILL) {
-			hogCPU();
-			haltAllMotors();
-			while(BTN_KILL) {
-				getJoystickSettings(joystick);
-			}
-			releaseCPU();
-		}
-
-		EndTimeSlice();
+	if(bDisconnected) { //kills motors and program if connection is lost
+		haltAllMotors();
+		StopAllTasks();
 	}
+
+	// Global motor kill
+	if (BTN_KILL) {
+		hogCPU();
+		haltAllMotors();
+		while(BTN_KILL) {
+			getJoystickSettings(joystick);
+		}
+		releaseCPU();
+	}
+
+	EndTimeSlice();
+}
 }
