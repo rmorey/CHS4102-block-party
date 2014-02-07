@@ -24,11 +24,8 @@
 #include "JoystickDriver.c"
 #include "robot.h"
 
-#define PWR_LIFT 100
-#define PWR_DRIVE 100
-#define PWR_ROTATE 100
 #define JS_THRESH 5 //slippage threshold
-#define JS_SCALE (100.0/127) //scaling factor for joysticks
+#define SCALE (100.0/127) //scaling factor for joysticks
 
 int drive_direction = 1; //1 for forwards, -1 for backwards
 bool tilted_drive = false;
@@ -44,7 +41,6 @@ void InitializeRobot (){
 	nMotorEncoder[M_LIFT_R] = 0;
 	servo[S_LID] = 215;
 	servo[S_AUTO] = 0;
-	return;
 }
 
 task DriveUpdate() {
@@ -52,14 +48,17 @@ task DriveUpdate() {
 	while (true) {
 		getJoystickSettings(joystick);
 
-		int js_drive_x = JS_DRIVE_X*JS_SCALE;
-		int js_drive_y = JS_DRIVE_Y*JS_SCALE;
-		int js_rotate = JS_ROTATE*JS_SCALE;
+		int js_drive_x = JS_DRIVE_X*SCALE;
+		int js_drive_y = JS_DRIVE_Y*SCALE;
+		int js_rotate = JS_ROTATE*SCALE;
 
 		//slippage control
-		if (abs(js_drive_x) < JS_THRESH) js_drive_x = 0;
-		if (abs(js_drive_y) < JS_THRESH) js_drive_y = 0;
-		if (abs(js_rotate) < JS_THRESH) js_rotate = 0;
+		if (abs(js_drive_x) < JS_THRESH)
+			js_drive_x = 0;
+		if (abs(js_drive_y) < JS_THRESH)
+			js_drive_y = 0;
+		if (abs(js_rotate) < JS_THRESH)
+			js_rotate = 0;
 
 		if (tilted_drive) { //titled drive mode, the flag spinner is onsidered the front of the robot
 			pwr_FR = js_drive_y - js_rotate;
@@ -67,9 +66,7 @@ task DriveUpdate() {
 			pwr_BR = js_drive_x - js_rotate;
 			pwr_BL = js_drive_y + js_rotate;
 		}
-
 		else {  //standard omniwheel drive
-
 			pwr_FR = drive_direction*(js_drive_y - js_drive_x - drive_direction*js_rotate);
 			pwr_FL = drive_direction*(js_drive_y + js_drive_x + drive_direction*js_rotate);
 			pwr_BR = drive_direction*(js_drive_y + js_drive_x - drive_direction*js_rotate);
@@ -107,7 +104,8 @@ task DriverButtons() {
 		motor[M_FLAG] = 0;
 
 		//switches to the tilted drive mode
-		if (BTN_TILT) tilted_drive = true;
+		if (BTN_TILT)
+			tilted_drive = true;
 
 		//backwards drive mode
 		if (BTN_BACK) {
@@ -129,7 +127,7 @@ task ScorerButtons() {
 	//update loop for scorer joystick button
 	while(true) {
 
-		//score blocks button
+		//open block stopper and score blocks
 		if (BTN_SCORE) {
 			servo[S_LID] = 250;
 			lid_closed = false;
@@ -138,10 +136,12 @@ task ScorerButtons() {
 		}
 
 		//reset lift encoder to zero
-		if (BTN_ZERO_LIFT) nMotorEncoder[M_LIFT_R] = 0;
+		if (BTN_ZERO_LIFT)
+			nMotorEncoder[M_LIFT_R] = 0;
 
 		//sets max lift height to current height
-		if (BTN_SETMAX_LIFT) enc_lift_max = nMotorEncoder[M_LIFT_R];
+		if (BTN_SETMAX_LIFT)
+			enc_lift_max = nMotorEncoder[M_LIFT_R];
 
 		//hook control
 		while (BTN_HOOK_OUT) {
@@ -161,98 +161,95 @@ task ScorerButtons() {
 				lid_closed =false;
 			}
 			else {
-				if (nMotorEncoder[M_LIFT_R} > 6000){
-				servo[S_LID] = 0;
-				lid_closed = true;
+				if (nMotorEncoder[M_LIFT_R] > 6000){
+					servo[S_LID] = 0;
+					lid_closed = true;
+				}
 			}
+			wait1Msec(500);
 		}
-		wait1Msec(500);
-	}
 
-	if(joy2Btn(7)) {
-		servo[S_AUTO] = 256;
+		EndTimeSlice();
 	}
-
-	EndTimeSlice();
-}
 }
 
 task LiftUpdate() {
-//lift control update loop
-while(true) {
+	//lift control update loop
+	while(true) {
 
-	//buttons to go straight to top/bottom
-	if (BTN_RAISE_LIFT) {
-		motor[M_LIFT_L] = 100;
-		motor[M_LIFT_R] = 100;
-		while (!BTN_STOP_LIFT && nMotorEncoder[M_LIFT_R] < enc_lift_max) {
-			getJoystickSettings(joystick);
+		//buttons to go straight to top/bottom
+		if (BTN_RAISE_LIFT) {
+			motor[M_LIFT_L] = 100;
+			motor[M_LIFT_R] = 100;
+			while (!BTN_STOP_LIFT && nMotorEncoder[M_LIFT_R] < enc_lift_max) {
+				getJoystickSettings(joystick);
+			}
+			liftStop();
 		}
-		liftStop();
-	}
 
-	if (BTN_LOWER_LIFT) {
-		motor[M_LIFT_L] = -100;
-		motor[M_LIFT_R] = -100;
-		while (!BTN_STOP_LIFT && nMotorEncoder[M_LIFT_R] > 0) {
-			getJoystickSettings(joystick);
+		if (BTN_LOWER_LIFT) {
+			motor[M_LIFT_L] = -100;
+			motor[M_LIFT_R] = -100;
+			while (!BTN_STOP_LIFT && nMotorEncoder[M_LIFT_R] > 0) {
+				getJoystickSettings(joystick);
+			}
+			liftStop();
 		}
-		liftStop();
+
+		//gets and scales joystick value
+		int js_lift = JS_LIFT*SCALE;
+
+		if (abs(js_lift) < JS_THRESH)
+			js_lift = 0;
+
+		int enc_R_lift = nMotorEncoder[M_LIFT_R];
+		nxtDisplayString(0, "%8d", nMotorEncoder[M_LIFT_R]);
+
+		if (!BTN_IGNORE_ENC && ((enc_R_lift < 0 && js_lift < 0) || (enc_R_lift > enc_lift_max && js_lift > 0)))
+			pwr_lift = 0;
+		else
+			pwr_lift = js_lift;
+
+
+		motor[M_LIFT_L] = pwr_lift;
+		motor[M_LIFT_R] = pwr_lift;
+
+		if (nMotorEncoder[M_LIFT_R] == 6000 && pwr_lift > 0) { //should be just above lexan thing, maybe make this fuzzy
+			servo[S_LID] = 0; //close block stopper
+			wait1Msec(50);
+		}
+
+		EndTimeSlice();
 	}
-
-	int js_lift = JS_LIFT;
-	if (abs(js_lift) < JS_THRESH) js_lift = 0;
-
-	int enc_R_lift = nMotorEncoder[M_LIFT_R];
-	nxtDisplayString(0, "%8d", nMotorEncoder[M_LIFT_R]);
-
-	if (!BTN_IGNORE_ENC && ((enc_R_lift < 0 && js_lift < 0) || (enc_R_lift > enc_lift_max && js_lift > 0))) {
-		pwr_lift = 0;
-	}
-	else {
-		pwr_lift = PWR_LIFT*(js_lift/JS_SCALE);
-	}
-
-	motor[M_LIFT_L] = pwr_lift;
-	motor[M_LIFT_R] = pwr_lift;
-
-	if (nMotorEncoder[M_LIFT_R] == 6000 && pwr_lift > 0) { //should be just above lexan thing, maybe make this fuzzy
-		servo[S_LID] = 0; //close block stopper
-		wait1Msec(50);
-	}
-
-	EndTimeSlice();
 }
-}
-
 
 task main() {
-InitializeRobot();
-waitForStart();
+	InitializeRobot();
+	waitForStart();
 
-StartTask(DriveUpdate);
-StartTask(LiftUpdate);
-StartTask(DriverButtons);
-StartTask(ScorerButtons);
+	StartTask(DriveUpdate);
+	StartTask(LiftUpdate);
+	StartTask(DriverButtons);
+	StartTask(ScorerButtons);
 
-while(true) {
-	getJoystickSettings(joystick);
+	while(true) {
+		getJoystickSettings(joystick);
 
-	if(bDisconnected) { //kills motors and program if connection is lost
-		haltAllMotors();
-		StopAllTasks();
-	}
-
-	// Global motor kill
-	if (BTN_KILL) {
-		hogCPU();
-		haltAllMotors();
-		while(BTN_KILL) {
-			getJoystickSettings(joystick);
+		if(bDisconnected) { //kills motors and program if connection is lost
+			haltAllMotors();
+			StopAllTasks();
 		}
-		releaseCPU();
-	}
 
-	EndTimeSlice();
-}
+		// Global motor kill
+		if (BTN_KILL) {
+			hogCPU();
+			haltAllMotors();
+			while(BTN_KILL) {
+				getJoystickSettings(joystick);
+			}
+			releaseCPU();
+		}
+
+		EndTimeSlice();
+	}
 }
