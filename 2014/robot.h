@@ -5,7 +5,7 @@ JS/js denotes a joystick coordinate, an int in (-127,127), remember that pushing
 ENC/enc denotes an encoder value, an int, 1440 ticks to a rotation (dont ask me why...)
 PWR/pwr denotes a motor power as an int in (-100,100)
 M denotes motor
-S is a servo
+SV is a servo
 
 ALL CAPS means a constant
 lowerCase means a variable
@@ -39,142 +39,148 @@ lowerCase means a variable
 #define BTN_KILL (joy1Btn(10) || joy2Btn(10))
 
 //encoder defs
-#define ENC_LIFT_MAX 17000 //TODO: figure this out
+#define ENC_LIFT_MAX 17000 
+
 
 //go in the specified direction at the specified power
 //these use max power, they do not maintain uniform
 void goForward (int pwr) {
-	motor[M_DRIVE_FL] = pwr;
-	motor[M_DRIVE_FR] = pwr;
-	motor[M_DRIVE_BR] = pwr;
-	motor[M_DRIVE_BL] = pwr;
+    motor[M_DRIVE_FL] = pwr;
+    motor[M_DRIVE_FR] = pwr;
+    motor[M_DRIVE_BR] = pwr;
+    motor[M_DRIVE_BL] = pwr;
 }
 void goBack (int pwr) {
-	goForward(-pwr);
+    goForward(-pwr);
 }
 void goRight (int pwr) {
-	motor[M_DRIVE_FL] = pwr;
-	motor[M_DRIVE_FR] = -pwr;
-	motor[M_DRIVE_BR] = pwr;
-	motor[M_DRIVE_BL] = -pwr;
+    motor[M_DRIVE_FL] = pwr;
+    motor[M_DRIVE_FR] = -pwr;
+    motor[M_DRIVE_BR] = pwr;
+    motor[M_DRIVE_BL] = -pwr;
 }
 void goLeft (int pwr) {
-	goRight(-pwr);
+    goRight(-pwr);
 }
 void goForwardRight (int pwr) {
-	motor[M_DRIVE_FL] = pwr;
-	motor[M_DRIVE_FR] = 0;
-	motor[M_DRIVE_BR] = pwr;
-	motor[M_DRIVE_BL] = 0;
+    motor[M_DRIVE_FL] = pwr;
+    motor[M_DRIVE_FR] = 0;
+    motor[M_DRIVE_BR] = pwr;
+    motor[M_DRIVE_BL] = 0;
 }
 void goBackLeft (int pwr) {
-	goForwardRight(-pwr);
+    goForwardRight(-pwr);
 }
 void goForwardLeft (int pwr) {
-	motor[M_DRIVE_FL] = 0;
-	motor[M_DRIVE_FR] = pwr;
-	motor[M_DRIVE_BR] = 0;
-	motor[M_DRIVE_BL] = pwr;
+    motor[M_DRIVE_FL] = 0;
+    motor[M_DRIVE_FR] = pwr;
+    motor[M_DRIVE_BR] = 0;
+    motor[M_DRIVE_BL] = pwr;
 }
 void goBackRight (int pwr) {
-	goForwardLeft(-pwr);
+    goForwardLeft(-pwr);
 }
 
 void driveStop() {
-	motor[M_DRIVE_FL] = 0;
-	motor[M_DRIVE_FR] = 0;
-	motor[M_DRIVE_BR] = 0;
-	motor[M_DRIVE_BL] = 0;
+    motor[M_DRIVE_FL] = 0;
+    motor[M_DRIVE_FR] = 0;
+    motor[M_DRIVE_BR] = 0;
+    motor[M_DRIVE_BL] = 0;
 }
 
 void liftStop() {
-	motor[M_LIFT_R] = 0;
-	motor[M_LIFT_L] = 0;
+    motor[M_LIFT_R] = 0;
+    motor[M_LIFT_L] = 0;
 }
 
 //stops all motors
 void haltAllMotors () {
-	driveStop();
-	liftStop();
-	motor[M_FLAG] = 0;
-	motor[M_BELT] = 0;
+    driveStop();
+    liftStop();
+    motor[M_FLAG] = 0;
+    motor[M_BELT] = 0;
 }
 
 void powerLift(int pwr) {
-	//powers both lift motors
-	motor[M_LIFT_L] = pwr;
-	motor[M_LIFT_R] = pwr;
+    //powers both lift motors
+    motor[M_LIFT_L] = pwr;
+    motor[M_LIFT_R] = pwr;
 }
 
 void drive(int pwr_x, int pwr_y) {
-	//uses rotation matrix to drive bot, maintains uniform power in all directions
-	int pwr_x_rot = .7071*(pwr_x + pwr_y);
-	int pwr_y_rot = .7071*(-pwr_x + pwr_y);
-	motor[M_DRIVE_FL] = pwr_x_rot;
-	motor[M_DRIVE_BR] = pwr_x_rot;
-	motor[M_DRIVE_FR] = pwr_y_rot;
-	motor[M_DRIVE_BL] = pwr_y_rot;
+    //uses rotation matrix to drive bot, maintains uniform power in all directions
+    int pwr_x_rot = .7071*(pwr_x + pwr_y);
+    int pwr_y_rot = .7071*(-pwr_x + pwr_y);
+    motor[M_DRIVE_FL] = pwr_x_rot;
+    motor[M_DRIVE_BR] = pwr_x_rot;
+    motor[M_DRIVE_FR] = pwr_y_rot;
+    motor[M_DRIVE_BL] = pwr_y_rot;
+
+void driveFast(int pwr_x, int_pwr_y) {
+    //like drive() but faster and less accurate in direction
+    int pwr_x_rot = pwr_x + pwr_y;
+    int pwr_y_rot = -pwr_x + pwr_y;
+    motor[M_DRIVE_FL] = pwr_x_rot;
+    motor[M_DRIVE_BR] = pwr_x_rot;
+    motor[M_DRIVE_FR] = pwr_y_rot;
+    motor[M_DRIVE_BL] = pwr_y_rot;
 }
 
 void driveTilted(int pwr_x, int pwr_y) {
-	//drives with FL corner as front of bot
-	motor[M_DRIVE_FL] = pwr_x;
-	motor[M_DRIVE_BR] = pwr_x;
-	motor[M_DRIVE_FR] = pwr_y;
-	motor[M_DRIVE_BL] = pwr_y;
+    //drives with FL corner as front of bot
+    motor[M_DRIVE_FL] = pwr_x;
+    motor[M_DRIVE_BR] = pwr_x;
+    motor[M_DRIVE_FR] = pwr_y;
+    motor[M_DRIVE_BL] = pwr_y;
 }
 
 
 
 void driveAngle(int pwr, float angle) {
-	//drive bot at pwr at angle, measured clockwise with 0degrees at front
-	int pwr_x = pwr*sinDegrees(angle);
-	int pwr_y = pwr*cosDegrees(angle);
-	drive(pwr_x,pwr_y);
+    //drive bot at pwr at angle, measured clockwise with 0degrees at front
+    int pwr_x = pwr*sinDegrees(angle);
+    int pwr_y = pwr*cosDegrees(angle);
+    drive(pwr_x,pwr_y);
 }
 
 
 void raiseLift() {
-	while (nMotorEncoder[M_LIFT_R] < ENC_LIFT_MAX) {
-		motor[M_LIFT_L] = 100;
-		motor[M_LIFT_R] = 100;
-	}
-	motor[M_LIFT_L] = 0;
-	motor[M_LIFT_R] = 0;
+    while (nMotorEncoder[M_LIFT_R] < ENC_LIFT_MAX) {
+        motor[M_LIFT_L] = 100;
+        motor[M_LIFT_R] = 100;
+    }
+    motor[M_LIFT_L] = 0;
+    motor[M_LIFT_R] = 0;
 }
 
 void lowerLift() {
-	while (nMotorEncoder[M_LIFT_R] > 0) {
-		motor[M_LIFT_L] = -100;
-		motor[M_LIFT_R] = -100;
-	}
-	motor[M_LIFT_L] = 0;
-	motor[M_LIFT_R] = 0;
+    while (nMotorEncoder[M_LIFT_R] > 0) {
+        motor[M_LIFT_L] = -100;
+        motor[M_LIFT_R] = -100;
+    }
+    motor[M_LIFT_L] = 0;
+    motor[M_LIFT_R] = 0;
 }
 
 
 //raise and lower lift using time, kinda sketch..
 void raiseLiftTime() {
-	motor[M_LIFT_L] = 100;
-	motor[M_LIFT_R] = 100;
-	wait1Msec(6000);
-	motor[M_LIFT_L] = 0;
-	motor[M_LIFT_R] = 0;
+    powerLift(100);
+    wait1Msec(6000);
+    liftStop();
 }
 
 void lowerLiftTime() {
-	motor[M_LIFT_L] = -25;
-	motor[M_LIFT_R] = -25;
-	wait1Msec(9000);
-	motor[M_LIFT_L] = 0;
-	motor[M_LIFT_R] = 0;
+    powerLift(-100);
+    wait1Msec(6000);
+    liftStop();
 }
 
 //pushes blocks out and brings pusher back in
 void scoreBlocks() {
-	servo[S_SCORE] = 0;
-	wait1Msec(1400);
-	servo[S_SCORE] = 255;
-	wait1Msec(1400);
-	servo[S_SCORE] = 128;
+    servo[SV_SCORE] = 0;
+    wait1Msec(1400);
+    servo[SV_SCORE] = 255;
+    wait1Msec(1400);
+    servo[SV_SCORE] = 128;
 }
