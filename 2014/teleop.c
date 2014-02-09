@@ -25,7 +25,7 @@
 #define THRESH 5 //slippage threshold
 #define SCALE (100.0/127) //scaling factor for joysticks
 
-int drive_direction = 1; //1 for forwards, -1 for backwards
+int drive_direction = 1; 
 bool tilted_drive = false;
 bool lid_closed = false;
 int pwr_FR = 0;

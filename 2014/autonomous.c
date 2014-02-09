@@ -137,7 +137,10 @@ task main()
     //just get on ramp
     goForward(100);
     wait1Msec(900);
-    if (start_on_right) goLeft(100); else goRight(100);
+    if (start_on_right) 
+        goLeft(100); 
+    else 
+        goRight(100);
     wait1Msec(2100);
     driveStop();
   }
@@ -146,12 +149,12 @@ task main()
     //score block in IR goal
     if (start_on_right) pwr_x = -PWR_SCAN; else pwr_x = PWR_SCAN;
     driveTilted(pwr_x, pwr_y);
-    while (SensorValue[SONAR] < 100) { //stops at edge of thing, TODO: make this use encoders
+    while (SensorValue[SONAR] < 100) { //TODO: make this use encoders
       if (SensorValue[IR] == 5) { //we see the IR beacon
         driveStop();
-        servo[SV_AUTO] = 250;
+        servo[SV_AUTO] = 250; //score the autonomous block
         wait1Msec(1000);
-        servo[SV_AUTO] = 0;
+        servo[SV_AUTO] = 0; //reset so it doesn't get in the way
         break;
 
       }
@@ -187,7 +190,10 @@ task main()
       goForward(100);
       wait1Msec(900);
 
-      if (start_on_right) goRight(100); else goLeft(100);
+        if (start_on_right) 
+        goRight(100); 
+    else 
+        goLeft(100);
       wait1Msec(2100);
 
       driveStop();
