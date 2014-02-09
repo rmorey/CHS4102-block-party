@@ -93,12 +93,13 @@ void liftStop() {
     motor[M_LIFT_L] = 0;
 }
 
-//stops all motors
+//stops all motors/continuous servos
 void haltAllMotors () {
     driveStop();
     liftStop();
     motor[M_FLAG] = 0;
     motor[M_BELT] = 0;
+    servo[SV_HOOK] = 128;
 }
 
 void powerLift(int pwr) {
@@ -126,6 +127,20 @@ void driveFast(int pwr_x, int_pwr_y) {
     motor[M_DRIVE_BL] = pwr_y_rot;
 }
 
+void driveFastDirection(int pwr, int direction) { 
+    switch (direction) { //tophat directions
+        case 0: driveFast(pwr,0); //forward
+        case 1: driveFast(pwr,pwr); //forward right
+        case 2: driveFast(0,pwr); //right
+        case 3: driveFast(-pwr,pwr); //backwards right
+        case 4: driveFast(-pwr,0); //backwards
+        case 5: driveFast(-pwr,-pwr); //backwards left
+        case 6: driveFast(0,-pwr); //left
+        case 7: driveFast(pwr,-pwr); //forward left
+        default: return;
+    }
+}
+        
 void driveTilted(int pwr_x, int pwr_y) {
     //drives with FL corner as front of bot
     motor[M_DRIVE_FL] = pwr_x;
@@ -143,7 +158,7 @@ void driveAngle(int pwr, float angle) {
     drive(pwr_x,pwr_y);
 }
 
-
+//raise and lower lift using encoders
 void raiseLift() {
     while (nMotorEncoder[M_LIFT_R] < ENC_LIFT_MAX) {
         motor[M_LIFT_L] = 100;

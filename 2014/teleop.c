@@ -1,7 +1,5 @@
 #pragma config(Hubs,  S1, HTMotor,  HTMotor,  none,     none)
 #pragma config(Hubs,  S2, HTServo,  HTMotor,  HTMotor,  none)
-#pragma config(Sensor, S1,     ,               sensorI2CMuxController)
-#pragma config(Sensor, S2,     ,               sensorI2CMuxController)
 #pragma config(Sensor, S3,     IR,             sensorHiTechnicIRSeeker1200)
 #pragma config(Sensor, S4,     SONAR,          sensorSONAR)
 #pragma config(Motor,  mtr_S1_C1_1,     M_DRIVE_BL,    tmotorTetrix, openLoop, reversed, encoder)
@@ -24,7 +22,7 @@
 #include "JoystickDriver.c"
 #include "robot.h"
 
-#define JS_THRESH 5 //slippage threshold
+#define THRESH 5 //slippage threshold
 #define SCALE (100.0/127) //scaling factor for joysticks
 
 int drive_direction = 1; //1 for forwards, -1 for backwards
@@ -37,7 +35,7 @@ int pwr_BL = 0;
 int pwr_lift = 0;
 int enc_lift_max = ENC_LIFT_MAX;
 
-void InitializeRobot (){
+void InitializeRobot() {
     nMotorEncoder[M_LIFT_R] = 0;
     servo[SV_LID] = 215;
     servo[SV_AUTO] = 0;    
@@ -53,11 +51,11 @@ task DriveUpdate() {
         int js_rotate = JS_ROTATE*SCALE;
 
         //slippage control
-        if (abs(js_drive_x) < JS_THRESH)
+        if (abs(js_drive_x) < THRESH)
             js_drive_x = 0;
-        if (abs(js_drive_y) < JS_THRESH)
+        if (abs(js_drive_y) < THRESH)
             js_drive_y = 0;
-        if (abs(js_rotate) < JS_THRESH)
+        if (abs(js_rotate) < THRESH)
             js_rotate = 0;
 
         if (tilted_drive) { //titled drive mode, the flag spinner is onsidered the front of the robot
@@ -67,10 +65,10 @@ task DriveUpdate() {
             pwr_BL = js_drive_y + js_rotate;
         }
         else {  //standard omniwheel drive
-            pwr_FR = drive_direction*(js_drive_y - js_drive_x - drive_direction*js_rotate);
-            pwr_FL = drive_direction*(js_drive_y + js_drive_x + drive_direction*js_rotate);
-            pwr_BR = drive_direction*(js_drive_y + js_drive_x - drive_direction*js_rotate);
-            pwr_BL = drive_direction*(js_drive_y - js_drive_x + drive_direction*js_rotate);
+            pwr_FR = drive_direction*(-js_drive_x + js_drive_y - drive_direction*js_rotate);
+            pwr_FL = drive_direction*(js_drive_x + js_drive_y + drive_direction*js_rotate);
+            pwr_BR = drive_direction*(js_drive_x + js_drive_y - drive_direction*js_rotate);
+            pwr_BL = drive_direction*(-js_drive_x + js_drive_y + drive_direction*js_rotate);
         }
 
         motor[M_DRIVE_FR] = pwr_FR;
@@ -199,7 +197,7 @@ task LiftUpdate() {
         //gets and scales joystick value
         int js_lift = JS_LIFT*SCALE;
 
-        if (abs(js_lift) < JS_THRESH)
+        if (abs(js_lift) < THRESH)
             js_lift = 0;
 
         int enc_R_lift = nMotorEncoder[M_LIFT_R];

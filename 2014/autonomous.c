@@ -122,7 +122,7 @@ task main()
     StopAllTasks();
   }
 
-  /////////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////
   ////code that actually runs during match starts here/////
   /////////////////////////////////////////////////////////
   eraseDisplay();
@@ -155,13 +155,11 @@ task main()
         break;
 
       }
-      int err = 28 - SensorValue[SONAR]; //10cm is our target distance
-      if (abs(err) > 10) {
-        pwr_y = 0; //ignore if error is really big, we're probably doing something wrong
-      }
-      else {
-        pwr_y = -2*err; //try to correct for error, maybe change this value
-      }
+      int err = 28 - SensorValue[SONAR]; // target distance
+      if (abs(err) > 10) 
+        pwr_y = 0; //ignore if error is really big
+      else 
+        pwr_y = -2*err; //try to correct for error
       driveTilted(pwr_x, pwr_y);
     }
 
