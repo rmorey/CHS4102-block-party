@@ -39,7 +39,7 @@ lowerCase means a variable
 #define BTN_KILL (joy1Btn(10) || joy2Btn(10))
 
 //encoder defs
-#define ENC_LIFT_MAX 17000 
+#define ENC_LIFT_MAX 17000
 
 
 //go in the specified direction at the specified power
@@ -116,8 +116,9 @@ void drive(int pwr_x, int pwr_y) {
     motor[M_DRIVE_BR] = pwr_x_rot;
     motor[M_DRIVE_FR] = pwr_y_rot;
     motor[M_DRIVE_BL] = pwr_y_rot;
+  }
 
-void driveFast(int pwr_x, int_pwr_y) {
+void driveFast(int pwr_x, int pwr_y) {
     //like drive() but faster and less accurate in direction
     int pwr_x_rot = pwr_x + pwr_y;
     int pwr_y_rot = -pwr_x + pwr_y;
@@ -127,7 +128,7 @@ void driveFast(int pwr_x, int_pwr_y) {
     motor[M_DRIVE_BL] = pwr_y_rot;
 }
 
-void driveFastDirection(int pwr, int direction) { 
+void driveFastDirection(int pwr, int direction) {
     switch (direction) { //tophat directions
         case 0: driveFast(pwr,0); //forward
         case 1: driveFast(pwr,pwr); //forward right
@@ -140,7 +141,7 @@ void driveFastDirection(int pwr, int direction) {
         default: return;
     }
 }
-        
+
 void driveTilted(int pwr_x, int pwr_y) {
     //drives with FL corner as front of bot
     motor[M_DRIVE_FL] = pwr_x;
