@@ -23,10 +23,10 @@
 task main()
 {
 	while(true) {
-		while (nNxtButtonPressed == kButtonRight) {
+		while (nNxtButtonPressed == kRightButton) {
 			motor[M_BELT] = 100;
 		}
-		while (nNxtButtonPressed == kButtonLeft) {
+		while (nNxtButtonPressed == kLeftButton) {
 			motor[M_BELT] = -100;
 		}
 		motor[M_BELT] = 0;

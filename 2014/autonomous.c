@@ -1,9 +1,7 @@
 #pragma config(Hubs,  S1, HTMotor,  HTMotor,  none,     none)
 #pragma config(Hubs,  S2, HTServo,  HTMotor,  HTMotor,  none)
-#pragma config(Sensor, S1,     ,               sensorI2CMuxController)
-#pragma config(Sensor, S2,     ,               sensorI2CMuxController)
-#pragma config(Sensor, S3,     IR,             sensorHiTechnicIRSeeker1200)
-#pragma config(Sensor, S4,     SONAR,          sensorSONAR)
+#pragma config(Sensor, S3,     SONAR,          sensorSONAR)
+#pragma config(Sensor, S4,     IR,             sensorHiTechnicIRSeeker1200)
 #pragma config(Motor,  mtr_S1_C1_1,     M_DRIVE_BL,    tmotorTetrix, openLoop, reversed, encoder)
 #pragma config(Motor,  mtr_S1_C1_2,     M_DRIVE_FL,    tmotorTetrix, openLoop, reversed, encoder)
 #pragma config(Motor,  mtr_S1_C2_1,     M_BELT,        tmotorTetrix, openLoop, reversed)
@@ -23,7 +21,7 @@
 #include "JoystickDriver.c"
 #include "robot.h"
 
-#define PWR_SCAN 30
+#define PWR_SCAN 50
 #define ENC_LAST_GOAL 10000 //distance to last goal TODO: fix this
 
 int start_on_right;
@@ -35,31 +33,33 @@ int pwr_x = 0;
 int pwr_y = 0;
 
 void getButton() { //gets next button press
-	while (true) // wait for button press
-	{
+	while (true) {
 		nBtn = nNxtButtonPressed;
 		if (nBtn != -1)
 			break;
 	}
 	PlaySoundFile("! Click.rso");
-	wait1Msec(500);
+	while(nNxtButtonPressed != -1) {
+	}
 }
 
 void trackWall(int dist) {
-	int err = dist - SensorValue[SONAR]; //10cm is our target distance
+	int err = dist - SensorValue[SONAR];
 	if (abs(err) > 50)
 		pwr_y = 0; //ignore if error is really big
 	else
 		pwr_y = -3*err; //try to correct for error
 }
 
-
+void InitializeRobot() {
+	servo[SV_AUTO] = 0;
+	servo[S_LID] = 215;
+}
 task main()
 {
+	InitializeRobot();
 	nNxtButtonTask  = -2; //hijacks button control
-	nNxtExitClicks  = 1;
-	//disableDiagnosticsDisplay();
-	hogCPU();
+	disableDiagnosticsDisplay();
 
 	eraseDisplay();
 	nxtDisplayCenteredTextLine(0, "Which side?");
@@ -74,7 +74,7 @@ task main()
 		start_on_right = -1;
 		break;
 	default:
-		break;
+		StopAllTasks();
 	}
 
 	eraseDisplay();
@@ -115,9 +115,35 @@ task main()
 		StopAllTasks();
 	}
 
+	int delay = 0;
 	eraseDisplay();
-	nxtDisplayCenteredTextLine(0, "Ready?");
-	nxtDisplayCenteredTextLine(7, "Go!");
+	nxtDisplayCenteredTextLine(0, "Delay?");
+	nxtDisplayCenteredBigTextLine(6,"%d",delay);
+
+	bool stay = true;
+	while(stay) {
+		eraseDisplay();
+		nxtDisplayCenteredTextLine(0, "Delay?");
+		nxtDisplayCenteredBigTextLine(6,"%d",delay);
+		getButton();
+		switch (nBtn) {
+		case kRightButton:
+			delay++;
+			break;
+		case kLeftButton:
+			delay--;
+			break;
+		case kEnterButton:
+			stay = false;
+			break;
+		default:
+			StopAllTasks();
+		}
+	}
+
+	eraseDisplay();
+	nxtDisplayCenteredBigTextLine(0, "Ready?");
+	nxtDisplayCenteredBigTextLine(6, "Go!");
 	getButton();
 
 	switch (nBtn) {
@@ -127,15 +153,18 @@ task main()
 		StopAllTasks();
 	}
 
-	////////////////////////////////////////////////////////
-	////code that actually runs during match starts here/////
-	/////////////////////////////////////////////////////////
-	eraseDisplay();
-	releaseCPU();
-	eraseDisplay();
-	wait1Msec(50);
-	if (wait) waitForStart();
+	////////////////////////////////////////////////////
+	//code that actually runs during match starts here//
+	////////////////////////////////////////////////////
 
+	eraseDisplay();
+	StartTask(displayDiagnostics);
+	wait1Msec(50);
+
+	if (wait)
+		waitForStart();
+
+	wait1Msec(delay*1000);
 	ClearTimer(T1); //keeps track of autonomous period, 30000 ms long
 
 	if (ramp && !block) {
@@ -154,36 +183,48 @@ task main()
 		while (SensorValue[SONAR] > 100) {
 			//wait for it to reach the wall
 		}
-		while (SensorValue[SONAR] < 100) { //TODO: make this use encoders
+		nMotorEncoder[M_DRIVE_FL] = 0;
+		while (-nMotorEncoder[M_DRIVE_FL] < 6500) {
+			nxtDisplayString(3, "%8d     ", nMotorEncoder[M_DRIVE_FL]);
+			nxtDisplayString(4, "%8d     ", nMotorEncoder[M_DRIVE_BR]);
 			if (SensorValue[IR] == 5) { //we see the IR beacon
 				driveStop();
+				goForwardLeft(50);
+				while(SensorValue[SONAR] > 35) {
+					//get close enough to score
+				}
+				driveStop();
 				servo[SV_AUTO] = 250; //score the autonomous block
-				wait1Msec(1000);
+				wait1Msec(500;);
 				servo[SV_AUTO] = 0; //reset so it doesn't get in the way
 				break;
 			}
-			trackWall(30);
+			trackWall(40);
 			driveTilted(pwr_x, pwr_y);
 		}
+		driveStop();
 
 		if (ramp) {
 
 			//go remaining distance TODO: return on closest side
-			pwr_x = -start_on_right*2.5*PWR_SCAN;
+			pwr_x = -start_on_right*1.5*PWR_SCAN;
+			pwr_y = -10;
 			driveTilted(pwr_x, pwr_y);
-			while(SensorValue[SONAR] < 50) {  //TODO: make this use encoders
-				trackWall(30);
+			while(-nMotorEncoder[M_DRIVE_FL] < 6500) {  //TODO: make this use encoders
+				trackWall(45);
 				driveTilted(pwr_x, pwr_y);
 			}
 			driveStop();
 
 			//get on ramp
-
+			goLeft(100);
+			wait1Msec(1500);
+			driveStop();
+			motor[M_DRIVE_BL] = 100;
+			wait1Msec(550);
 			goForward(100);
-			wait1Msec(900);
+			wait1Msec(2000);
 
-			driveFast(start_on_right*100,0);
-			wait1Msec(2100);
 
 			driveStop();
 		}

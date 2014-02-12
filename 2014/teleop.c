@@ -182,7 +182,7 @@ task LiftUpdate() {
 			motor[M_LIFT_R] = 100;
 			while (!BTN_STOP_LIFT && nMotorEncoder[M_LIFT_R] < enc_lift_max) {
 				getJoystickSettings(joystick);
-				if (nMotorEncoder[M_LIFT_R] > 6000 && nMotorEncoder[M_LIFT_R] < 6500 && pwr_lift > 0)  //should be just above lexan thing, maybe make this fuzzy
+				if (nMotorEncoder[M_LIFT_R] > 5000 && nMotorEncoder[M_LIFT_R] < 6500 && pwr_lift > 0)  //should be just above lexan thing, maybe make this fuzzy
 					servo[SV_LID] = 0; //close block stopper
 				}
 				liftStop();
@@ -215,7 +215,7 @@ task LiftUpdate() {
 			motor[M_LIFT_L] = pwr_lift;
 			motor[M_LIFT_R] = pwr_lift;
 
-			if (nMotorEncoder[M_LIFT_R] > 6000 && nMotorEncoder[M_LIFT_R] < 6500 && pwr_lift > 0) { //should be just above lexan thing, maybe make this fuzzy
+			if (nMotorEncoder[M_LIFT_R] > 5000 && nMotorEncoder[M_LIFT_R] < 5500 && pwr_lift > 0) { //should be just above lexan thing, maybe make this fuzzy
 				servo[SV_LID] = 0; //close block stopper
 				wait1Msec(50);
 			}
@@ -226,7 +226,7 @@ task LiftUpdate() {
 
 	task main() {
 		InitializeRobot();
-		waitForStart();\
+		waitForStart();
 
 		StartTask(DriveUpdate);
 		StartTask(LiftUpdate);

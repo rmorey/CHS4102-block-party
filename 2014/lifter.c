@@ -20,14 +20,15 @@
 #pragma config(Servo,  srvo_S2_C1_6,    servo6,               tServoNone)
 //lifter controls directly from the nxt
 
+#include "JoystickDriver.c"
 task main()
 {
 	while(true) {
-		while (nNxtButtonPressed == kButtonRight) {
+		while (nNxtButtonPressed == kRightButton) {
 			motor[M_LIFT_R] = 100;
 			motor[M_LIFT_L] = 100;
 		}
-		while (nNxtButtonPressed == kButtonLeft) {
+		while (nNxtButtonPressed == kLeftButton) {
 			motor[M_LIFT_R] = -100;
 			motor[M_LIFT_L] = -100;
 		}
