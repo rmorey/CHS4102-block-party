@@ -41,9 +41,7 @@ lowerCase means a variable
 //encoder defs
 #define ENC_LIFT_MAX 17000
 
-
 //go in the specified direction at the specified power
-//these use max power, they do not maintain uniform
 void goForward (int pwr) {
     motor[M_DRIVE_FL] = pwr;
     motor[M_DRIVE_FR] = pwr;
@@ -93,6 +91,12 @@ void liftStop() {
     motor[M_LIFT_L] = 0;
 }
 
+void rotate(int pwr) {
+	motor[M_DRIVE_FR] += -pwr;
+	motor[M_DRIVE_FL] += pwr;
+	motor[M_DRIVE_BR] += -pwr;
+	motor[M_DRIVE_BL] += pwr;
+}
 //stops all motors/continuous servos
 void haltAllMotors () {
     driveStop();
@@ -100,12 +104,6 @@ void haltAllMotors () {
     motor[M_FLAG] = 0;
     motor[M_BELT] = 0;
     servo[SV_HOOK] = 128;
-}
-
-void powerLift(int pwr) {
-    //powers both lift motors
-    motor[M_LIFT_L] = pwr;
-    motor[M_LIFT_R] = pwr;
 }
 
 void drive(int pwr_x, int pwr_y) {
@@ -151,7 +149,6 @@ void driveTilted(int pwr_x, int pwr_y) {
 }
 
 
-
 void driveAngle(int pwr, float angle) {
     //drive bot at pwr at angle, measured clockwise with 0degrees at front
     int pwr_x = pwr*sinDegrees(angle);
@@ -176,20 +173,6 @@ void lowerLift() {
     }
     motor[M_LIFT_L] = 0;
     motor[M_LIFT_R] = 0;
-}
-
-
-//raise and lower lift using time, kinda sketch..
-void raiseLiftTime() {
-    powerLift(100);
-    wait1Msec(6000);
-    liftStop();
-}
-
-void lowerLiftTime() {
-    powerLift(-100);
-    wait1Msec(6000);
-    liftStop();
 }
 
 //pushes blocks out and brings pusher back in
