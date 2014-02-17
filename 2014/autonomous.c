@@ -21,16 +21,17 @@
 #include "JoystickDriver.c"
 #include "robot.h"
 
-#define PWR_SCAN 50
+#define PWR_SCAN 100
 
-int start_on_right;
+int scan_direction;
 bool ramp;
 bool block;
 bool wait;
 int button;
 int pwr_x = 0;
 int pwr_y = 0;
-int ramp_dir;
+int ramp_direction;
+
 
 void getButton() { //gets next button press
 	while (true) {
@@ -42,33 +43,6 @@ void getButton() { //gets next button press
 	while(nNxtButtonPressed != -1) {
 	}
 }
-
-int checkForBasket() {
-	//returns number of basket if in basket zone
-	// returns 0 inbetween zones
-	//returns -1 outside of thing
-	int dist = nMotorEncoder[M_DRIVE_FL];
-	if (dist < 0)
-		return -1;
-	if (dist < 100) //start of first basket
-		return 0;
-	if (dist < 200) // end of first baskets
-		return 1;
-	if (dist < 300) //start of second basket
-		return 0;
-	if (dist < 400) //end of scond basket
-		return 2;
-	if (dist < 500) //start of third basket
-		return 0;
-	if (dist < 600) // end of third basket
-		return 3;
-	if (dist < 700) //start of fourth basket
-		return 0;
-	if (dist < 800) //end of fourth basket
-		return 4;
-	return -1;
-}
-
 
 void trackWall(int dist) {
 	int err = dist - SensorValue[SONAR];
@@ -95,10 +69,10 @@ task main()
 
 	switch (button) {
 	case kRightButton:
-		start_on_right = 1;
+		scan_direction = -1;
 		break;
 	case kLeftButton:
-		start_on_right = -1;
+		scan_direction = 1;
 		break;
 	default:
 		StopAllTasks();
@@ -144,7 +118,7 @@ task main()
 
 	//optional delay before starting autonomous
 	eraseDisplay();
-	nxtDisplayCenteredTextLine(0, "Delay?");
+	nxtDisplayCenteredBigTextLine(1, "Delay?");
 	nxtDisplayCenteredBigTextLine(6,"0");
 
 	int delay = 0; //number of seconds to delay
@@ -198,14 +172,14 @@ task main()
 		//just get on ramp
 		goForward(100);
 		wait1Msec(900);
-		driveFast(-start_on_right*100,0);
+		driveFast(scan_direction*100,0);
 		wait1Msec(2100);
 		driveStop();
 	}
 
 	else {
 		//score block in IR goal
-		pwr_x = -start_on_right*PWR_SCAN;
+		pwr_x = scan_direction*PWR_SCAN;
 		driveTilted(pwr_x, pwr_y);
 		while (SensorValue[SONAR] > 100) {
 			//wait for it to reach the wall
@@ -213,29 +187,32 @@ task main()
 		nMotorEncoder[M_DRIVE_FL] = 0;
 		while (-nMotorEncoder[M_DRIVE_FL] < 6500) {
 			nxtDisplayString(3, "%8d     ", nMotorEncoder[M_DRIVE_FL]);
+			//nxtDisplayBigStringAt(0,50, "IR:%d   ", SensorValue[IR]);
 
-			//int zone = checkForBasket();
-			int zone = 1;
-
-			if (SensorValue[IR] == 5 && zone > 0) { //we see the IR beacon, and are in a basket zone
+			if (SensorValue[IR] == 5) { //we see the IR beacon
 				driveStop();
+				if (scan_direction == -1){ //go a bit more if on left because robot
+					goForwardRight(PWR_SCAN);
+					wait1Msec(500);
+					driveStop();
+				}
 				nxtDisplayString(3, "%8d     ", nMotorEncoder[M_DRIVE_FL]);
 				if (abs(nMotorEncoder[M_DRIVE_FL]) > 2000)
-					ramp_dir = -1;
+					ramp_direction = scan_direction;
 				else
-					ramp_dir = 1;
+					ramp_direction = -scan_direction;
 				pwr_x = 0;
 				pwr_y = 50;
-				while(SensorValue[SONAR] > 35) {
+				while(SensorValue[SONAR] > 35 || SensorValue[IR] != 5) {
 					int ir = SensorValue[IR];
 					switch (ir) {
 					case 4:
-						pwr_x = -10;
-						pwr_y = 25;
+						pwr_x = -30;
+						pwr_y = 0;
 						break;
 					case 6:
-						pwr_x = 10;
-						pwr_y = 25;
+						pwr_x = 30;
+						pwr_y = 0;
 						break;
 					default:
 						pwr_x = 0;
@@ -244,6 +221,7 @@ task main()
 					}
 					driveTilted(pwr_x,pwr_y);
 				}
+
 				driveStop();
 
 				servo[SV_AUTO] = 200; //score the autonomous block
@@ -260,8 +238,8 @@ task main()
 		if (ramp) {
 			//go remaining distance TODO: return on closest side
 
-			pwr_x = ramp_dir*start_on_right*1.5*PWR_SCAN;
-			pwr_y = -10;
+			pwr_x = ramp_direction*1.5*PWR_SCAN;
+			pwr_y = -10; //get a bit away from baskets
 			driveTilted(pwr_x, pwr_y);
 			while(SensorValue[SONAR] < 200) {
 				trackWall(45);
@@ -270,29 +248,43 @@ task main()
 			driveStop();
 
 			//get on ramp
-			wait1Msec(3000);
-			if (ramp_dir == -1)
-				goLeft(100);
-			else
+			//wait1Msec(1000);
+
+			//get away from baskets
+			if (ramp_direction == 1)
 				goForward(100);
+			else
+				goLeft(100);
 			wait1Msec(1000);
 			driveStop();
-			wait1Msec(1000);
+
+			//wait1Msec(1000);
+
+			//get in front of ramp
 			goForwardLeft(100);
 			wait1Msec(1000);
 			driveStop();
-			wait1Msec(1000);
-			if (ramp_dir == -1)
-				motor[M_DRIVE_BL] = 100;
-			else
-				rotate(-100);
-			wait1Msec(200);
-			driveStop();
-			wait1Msec(100);
-			goLeft(100);
 
+			//wait1Msec(1000);
+
+			//rotate to face ramp
+			if (ramp_direction == 1)
+				rotate(-100);
+			else
+				rotate(100);
+			wait1Msec(300);
+			driveStop();
+
+			//wait1Msec(1000);
+
+			//get on ramp
+			if (ramp_direction == 1)
+				goLeft(100);
+			else
+				goForward(100);
 			wait1Msec(2000);
 			driveStop();
+
 		}
 	}
 }

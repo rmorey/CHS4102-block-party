@@ -11,7 +11,7 @@
 #pragma config(Motor,  mtr_S2_C3_1,     M_LIFT_R,      tmotorTetrix, openLoop, encoder)
 #pragma config(Motor,  mtr_S2_C3_2,     M_FLAG,        tmotorTetrix, openLoop)
 #pragma config(Servo,  srvo_S2_C1_1,    SV_SCORE,             tServoContinuousRotation)
-#pragma config(Servo,  srvo_S2_C1_2,    SV_HOOK,              tServoContinuousRotation)
+#pragma config(Servo,  srvo_S2_C1_2,    SV_HOOK,              tServoStandard)
 #pragma config(Servo,  srvo_S2_C1_3,    SV_LID,               tServoStandard)
 #pragma config(Servo,  srvo_S2_C1_4,    SV_AUTO,              tServoStandard)
 #pragma config(Servo,  srvo_S2_C1_5,    servo5,               tServoNone)
@@ -38,6 +38,7 @@ void InitializeRobot() {
 	nMotorEncoder[M_LIFT_R] = 0;
 	servo[SV_LID] = 215;
 	servo[SV_AUTO] = 128;
+	servo[SV_HOOK] = 256;
 }
 
 task DriveUpdate() {
@@ -132,7 +133,7 @@ task ScorerButtons() {
 			wait1Msec(500);
 		}
 
-		//reset lift encoder to zero
+		//reset 'lift encoder to zero
 		if (BTN_ZERO_LIFT)
 			nMotorEncoder[M_LIFT_R] = 0;
 
@@ -141,15 +142,11 @@ task ScorerButtons() {
 			enc_lift_max = nMotorEncoder[M_LIFT_R];
 
 		//hook control
-		while (BTN_HOOK_OUT) {
-			servo[SV_HOOK] = 64;
-			getJoystickSettings(joystick);
+		if (BTN_HOOK_OUT){
+			servo[SV_HOOK] = 0;
 		}
-		while (BTN_HOOK_IN) {
-			servo[SV_HOOK] = 192;
-			getJoystickSettings(joystick);
-		}
-		servo[SV_HOOK] = 128;
+		if (BTN_HOOK_IN)
+			servo[SV_HOOK] = 256;
 
 		//block stopper control
 		if (BTN_LID) {
@@ -182,73 +179,73 @@ task LiftUpdate() {
 				getJoystickSettings(joystick);
 				if (nMotorEncoder[M_LIFT_R] > 5000 && nMotorEncoder[M_LIFT_R] < 6500 && pwr_lift > 0)  //should be just above lexan thing, maybe make this fuzzy
 					servo[SV_LID] = 0; //close block stopper
-				}
-				liftStop();
 			}
-
-			if (BTN_LOWER_LIFT) {
-				motor[M_LIFT_L] = -100;
-				motor[M_LIFT_R] = -100;
-				while (!BTN_STOP_LIFT && nMotorEncoder[M_LIFT_R] > 0) {
-					getJoystickSettings(joystick);
-				}
-				liftStop();
-			}
-
-			//gets and scales joystick value
-			int js_lift = JS_LIFT*SCALE;
-
-			if (abs(js_lift) < THRESH)
-				js_lift = 0;
-
-			int enc_R_lift = nMotorEncoder[M_LIFT_R];
-			nxtDisplayString(0, "%8d", nMotorEncoder[M_LIFT_R]);
-
-			if (!BTN_IGNORE_ENC && ((enc_R_lift < 0 && js_lift < 0) || (enc_R_lift > enc_lift_max && js_lift > 0)))
-				pwr_lift = 0;
-			else
-				pwr_lift = js_lift;
-
-
-			motor[M_LIFT_L] = pwr_lift;
-			motor[M_LIFT_R] = pwr_lift;
-
-			if (nMotorEncoder[M_LIFT_R] > 5000 && nMotorEncoder[M_LIFT_R] < 5500 && pwr_lift > 0) { //should be just above lexan thing, maybe make this fuzzy
-				servo[SV_LID] = 0; //close block stopper
-				wait1Msec(50);
-			}
-
-			EndTimeSlice();
+			liftStop();
 		}
-	}
 
-	task main() {
-		InitializeRobot();
-		waitForStart();
-
-		StartTask(DriveUpdate);
-		StartTask(LiftUpdate);
-		StartTask(DriverButtons);
-		StartTask(ScorerButtons);
-
-		while(true) {
-			getJoystickSettings(joystick);
-
-			if(bDisconnected) { //kills motors and program if connection is lost
-				haltAllMotors();
-				StopAllTasks();
+		if (BTN_LOWER_LIFT) {
+			motor[M_LIFT_L] = -100;
+			motor[M_LIFT_R] = -100;
+			while (!BTN_STOP_LIFT && nMotorEncoder[M_LIFT_R] > 0) {
+				getJoystickSettings(joystick);
 			}
-
-			// Global motor kill
-			if (BTN_KILL) {
-				hogCPU();
-				haltAllMotors();
-				while(BTN_KILL) {
-					getJoystickSettings(joystick);
-				}
-				releaseCPU();
-			}
-
-			EndTimeSlice();
+			liftStop();
 		}
+
+		//gets and scales joystick value
+		int js_lift = JS_LIFT*SCALE;
+
+		if (abs(js_lift) < THRESH)
+			js_lift = 0;
+
+		int enc_R_lift = nMotorEncoder[M_LIFT_R];
+		nxtDisplayString(0, "%8d", nMotorEncoder[M_LIFT_R]);
+
+		if (!BTN_IGNORE_ENC && ((enc_R_lift < 0 && js_lift < 0) || (enc_R_lift > enc_lift_max && js_lift > 0)))
+			pwr_lift = 0;
+		else
+			pwr_lift = js_lift;
+
+
+		motor[M_LIFT_L] = pwr_lift;
+		motor[M_LIFT_R] = pwr_lift;
+
+		if (nMotorEncoder[M_LIFT_R] > 5000 && nMotorEncoder[M_LIFT_R] < 5500 && pwr_lift > 0) { //should be just above lexan thing, maybe make this fuzzy
+			servo[SV_LID] = 0; //close block stopper
+			wait1Msec(50);
+		}
+
+		EndTimeSlice();
 	}
+}
+
+task main() {
+	InitializeRobot();
+	waitForStart();
+
+	StartTask(DriveUpdate);
+	StartTask(LiftUpdate);
+	StartTask(DriverButtons);
+	StartTask(ScorerButtons);
+
+	while(true) {
+		getJoystickSettings(joystick);
+
+		if(bDisconnected) { //kills motors and program if connection is lost
+			haltAllMotors();
+			StopAllTasks();
+		}
+
+		// Global motor kill
+		if (BTN_KILL) {
+			hogCPU();
+			haltAllMotors();
+			while(BTN_KILL) {
+				getJoystickSettings(joystick);
+			}
+			releaseCPU();
+		}
+
+		EndTimeSlice();
+	}
+}
