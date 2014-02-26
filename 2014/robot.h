@@ -92,11 +92,13 @@ void liftStop() {
 }
 
 void rotate(int pwr) {
-	motor[M_DRIVE_FR] += -pwr;
-	motor[M_DRIVE_FL] += pwr;
-	motor[M_DRIVE_BR] += -pwr;
-	motor[M_DRIVE_BL] += pwr;
+	motor[M_DRIVE_FR] = -pwr;
+	motor[M_DRIVE_FL] = pwr;
+	motor[M_DRIVE_BR] = -pwr;
+	motor[M_DRIVE_BL] = pwr;
 }
+
+
 //stops all motors/continuous servos
 void haltAllMotors () {
     driveStop();
@@ -177,9 +179,9 @@ void lowerLift() {
 
 //pushes blocks out and brings pusher back in
 void scoreBlocks() {
-    servo[SV_SCORE] = 0;
-    wait1Msec(1400);
-    servo[SV_SCORE] = 255;
-    wait1Msec(1400);
-    servo[SV_SCORE] = 128;
+    //servo[SV_SCORE] = 0;
+    //wait1Msec(1400);
+    //servo[SV_SCORE] = 255;
+    //wait1Msec(1400);
+    //servo[SV_SCORE] = 128;
 }

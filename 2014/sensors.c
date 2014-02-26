@@ -1,5 +1,8 @@
-#pragma config(Sensor, S4,     IR,             sensorHiTechnicIRSeeker600)
+#pragma config(Sensor, S4,     HTSMUX,         sensorI2CCustom)
 #pragma config(Sensor, S3,     SONAR,          sensorSONAR)
+
+#include "drivers/hitechnic-sensormux.h"
+#include "drivers/hitechnic-gyro.h"
 
 task main() {
 	while(true) {

@@ -1,7 +1,7 @@
 #pragma config(Hubs,  S1, HTMotor,  HTMotor,  none,     none)
 #pragma config(Hubs,  S2, HTMotor,  HTServo,  HTMotor,  none)
 #pragma config(Sensor, S3,     SONAR,          sensorSONAR)
-#pragma config(Sensor, S4,     IR,             sensorHiTechnicIRSeeker1200)
+#pragma config(Sensor, S4,     HTSMUX,         sensorI2CCustom9V)
 #pragma config(Motor,  mtr_S1_C1_1,     M_DRIVE_BL,    tmotorTetrix, openLoop, reversed, encoder)
 #pragma config(Motor,  mtr_S1_C1_2,     M_DRIVE_FL,    tmotorTetrix, openLoop, reversed, encoder)
 #pragma config(Motor,  mtr_S1_C2_1,     M_BELT,        tmotorTetrix, openLoop, reversed)
@@ -20,6 +20,8 @@
 
 #include "JoystickDriver.c"
 #include "robot.h"
+#include "hitechnic-gyro.h"
+
 
 #define PWR_SCAN 100
 
@@ -31,6 +33,8 @@ int button;
 int pwr_x = 0;
 int pwr_y = 0;
 int ramp_direction;
+float rotSpeed;
+float heading;
 
 
 void getButton() { //gets next button press
@@ -54,7 +58,6 @@ void trackWall(int dist) {
 
 void initializeRobot() {
 	servo[SV_AUTO] = 0;
-	servo[SV_HOOK] = 255;
 }
 task main()
 {
@@ -190,7 +193,6 @@ task main()
 			//nxtDisplayBigStringAt(0,50, "IR:%d   ", SensorValue[IR]);
 
 			if (SensorValue[IR] == 5) { //we see the IR beacon
-				wait1Msec(80);
 				driveStop();
 				//int near_edge = abs(nMotorEncoder[M_DRIVE_FL]);
 				//while (SensorValue[IR] == 5){
