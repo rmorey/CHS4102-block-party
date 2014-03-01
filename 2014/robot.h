@@ -18,6 +18,8 @@ lowerCase means a variable
 #define BTN_FRONT joy1Btn(4) //revert to standard driving mode
 #define BTN_BELT_IN joy1Btn(5) //hold to pull blocks in
 #define BTN_BELT_OUT joy1Btn(6) //hold to push blocks out
+#define BTN_BUCKET_IN joy1Btn(7)
+#define BTN_BUCKET_OUT joy1Btn(8)
 #define JS_DRIVE_X joystick.joy1_x1 //directional driving
 #define JS_DRIVE_Y joystick.joy1_y1 //directional driving
 #define JS_ROTATE joystick.joy1_x2 //rotation
@@ -28,12 +30,13 @@ lowerCase means a variable
 #define BTN_HOOK_OUT joy2Btn(3) // hook control
 #define BTN_HOOK_IN joy2Btn(4) //hook control
 #define BTN_IGNORE_ENC joy2Btn(5) // ignores lifter encoder limits when held
-#define BTN_ZERO_LIFT joy2Btn(6) //reset the lift encoder values to zero
+#define BTN_ZERO_LIFT joy2Btn	(6) //reset the lift encoder values to zero
 #define BTN_SETMAX_LIFT joy2Btn(8) //sets max lift height
 #define BTN_STOP_LIFT joy2Btn(9) //stop lift raising or lowering
 #define BTN_RAISE_LIFT (joystick.joy2_TopHat == 0) //raise lift to max
 #define BTN_LOWER_LIFT (joystick.joy2_TopHat == 4) //lower lift to bottom
 #define JS_LIFT joystick.joy2_y1 //controls lift
+#define JS_HOOK joystick.joy2_y2
 
 //both drivers
 #define BTN_KILL (joy1Btn(10) || joy2Btn(10))
@@ -98,7 +101,7 @@ void rotate(int pwr) {
 	motor[M_DRIVE_BL] = pwr;
 }
 
-
+void rotateAngle();
 //stops all motors/continuous servos
 void haltAllMotors () {
     driveStop();
