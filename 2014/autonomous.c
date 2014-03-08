@@ -191,7 +191,7 @@ task main() {
 
 	switch (button) {
 	case kEnterButton:
-		break;
+		break; 
 	default:
 		StopAllTasks();
 	}
