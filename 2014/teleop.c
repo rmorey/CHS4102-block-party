@@ -29,6 +29,7 @@
 int drive_direction = 1;
 bool tilted_drive = false;
 bool lid_closed = false;
+int bucket_status = 0;
 int pwr_FR = 0;
 int pwr_FL = 0;
 int pwr_BR = 0;
@@ -39,10 +40,10 @@ const int SV_LID_CLOSED = 80;
 const int SV_LID_OPEN = 245;
 
 void InitializeRobot() {
-	disableDiagnosticsDisplay();
+	//disableDiagnosticsDisplay();
 	nMotorEncoder[M_LIFT_L] = 0;
-	servo[SV_AUTO] = 128;
-	servo[SV_HOOK] = 128;
+	servo[SV_AUTO] = 0;
+	servo[SV_HOOK] = 245;
 	servo[SV_LID] = SV_LID_OPEN;
 }
 
@@ -55,7 +56,7 @@ task DriveUpdate() {
 		int js_drive_x = JS_DRIVE_X*SCALE;
 		int js_drive_y = JS_DRIVE_Y*SCALE;
 		int js_rotate = JS_ROTATE*SCALE;
-		int js_hook = JS_HOOK*SCALE;
+		int js_conveyor = JS_CONVEYOR*SCALE;
 
 		//slippage control
 		if (abs(js_drive_x) < THRESH)
@@ -64,10 +65,11 @@ task DriveUpdate() {
 			js_drive_y = 0;
 		if (abs(js_rotate) < THRESH)
 			js_rotate = 0;
-		if (abs(js_hook) < THRESH)
-			js_hook = 0;
+		if (abs(js_conveyor) < THRESH)
+			js_conveyor = 0;
 
-		servo[SV_HOOK] = js_hook/2 + 128;
+		servo[SV_BUCKET_L] = js_conveyor/2 + 128;
+		servo[SV_BUCKET_R] = -js_conveyor/2 + 128;
 
 		if (tilted_drive) { //titled drive mode, the flag spinner is onsidered the front of the robot
 			pwr_FR = js_drive_y - js_rotate;
@@ -87,6 +89,8 @@ task DriveUpdate() {
 		motor[M_DRIVE_BR] = pwr_BR;
 		motor[M_DRIVE_BL] = pwr_BL;
 
+		motor[M_FLAG] = BTN_FLAG*100;
+
 		EndTimeSlice();
 	}
 }
@@ -97,13 +101,24 @@ task DriverButtons() {
 		// belt control
 		getJoystickSettings(joystick);
 		motor[M_BELT] = 100*(BTN_BELT_IN - BTN_BELT_OUT);
-		servo[SV_BUCKET_L] = 128 - 128*BTN_BUCKET_IN + 128*BTN_BUCKET_OUT + 128*BTN_SCORE;
-		servo[SV_BUCKET_R] = 128 + 128*BTN_BUCKET_IN - 128*BTN_BUCKET_OUT - 128*BTN_SCORE;
 
-		//flag control
-		motor[M_FLAG] = BTN_FLAG*100;
 
-		//switches to the tilted drive mode
+		if (BTN_BUCKET_OUT){
+			if (bucket_status == 1)
+				bucket_status = 0;
+			else
+				bucket_status = 1;
+			wait1Msec(100);
+		}
+
+		if (BTN_BUCKET_IN){
+			if (bucket_status == -1)
+				bucket_status = 0;
+			else
+				bucket_status = -1;
+			wait1Msec(100);
+		}
+
 		if (BTN_TILT)
 			tilted_drive = true;
 
@@ -118,9 +133,8 @@ task DriverButtons() {
 			tilted_drive = false;
 			drive_direction = 1;
 		}
-
-		EndTimeSlice();
 	}
+	EndTimeSlice();
 }
 
 task ScorerButtons() {
@@ -131,6 +145,13 @@ task ScorerButtons() {
 			servo[SV_LID] = SV_LID_OPEN;
 			lid_closed = false;
 		}
+
+		if (BTN_HOOK_OUT)
+			servo[SV_HOOK] = 245;
+		if(BTN_HOOK_IN)
+			servo[SV_HOOK] = 25;
+
+
 
 		//reset lift encoder to zero
 		if (BTN_ZERO_LIFT)
@@ -160,6 +181,11 @@ task ScorerButtons() {
 		if (abs(nMotorEncoder[M_LIFT_L] - 6000) < 250 && pwr_lift > 0){
 			servo[SV_LID] = SV_LID_CLOSED;
 			lid_closed = true;
+		}
+
+		if (servo[SV_BUCKET_L] > 128){
+			servo[SV_LID] = SV_LID_OPEN;
+			lid_closed = false;
 		}
 
 		EndTimeSlice();

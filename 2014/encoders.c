@@ -16,6 +16,7 @@
 #pragma config(Servo,  srvo_S2_C1_4,    SV_AUTO,              tServoStandard)
 #pragma config(Servo,  srvo_S2_C1_5,    servo5,               tServoNone)
 #pragma config(Servo,  srvo_S2_C1_6,    servo6,               tServoNone)
+
 task main() {
 	while (true) {
 		nxtDisplayTextLine(1,"M_LIFT_R:%5d",nMotorEncoder[M_LIFT_R]);

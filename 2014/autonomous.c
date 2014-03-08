@@ -26,6 +26,7 @@
 #define PWR_SCAN 100
 
 int scan_direction;
+bool scored = false;
 bool ramp;
 bool block;
 bool wait;
@@ -36,6 +37,11 @@ int pwr_y = 0;
 int ramp_direction;
 
 
+void initializeRobot() {
+	servo[SV_AUTO] = 0;
+	servo[SV_HOOK] = 245;
+	servo[SV_LID] = 255;
+}
 
 void getButton() { //gets next button press
 	while (true) {
@@ -56,15 +62,10 @@ void trackWall(int dist) {
 		pwr_y = -3*err; //try to correct for error
 }
 
-void initializeRobot() {
-	servo[SV_AUTO] = 0;
-	servo[SV_HOOK] = 128;
-	servo[SV_LID] = 255;
-}
-task main()
-{
+
+task main() {
 	initializeRobot();
-	disableDiagnosticsDisplay();
+	//disableDiagnosticsDisplay();
 
 	eraseDisplay();
 	nxtDisplayCenteredBigTextLine(6, "L   R");
@@ -82,8 +83,8 @@ task main()
 	}
 
 	eraseDisplay();
-	nxtDisplayCenteredBigTextLine(4, "Both");
-	nxtDisplayCenteredBigTextLine(6, "Block|Ramp");
+	nxtDisplayCenteredTextLine(4, "Both");
+	nxtDisplayCenteredTextLine(6, "Block|Ramp");
 	getButton();
 
 	switch (button) {
@@ -101,6 +102,28 @@ task main()
 		break;
 	default:
 		StopAllTasks();
+	}
+
+	if (block && ramp) {
+
+		eraseDisplay();
+		nxtDisplayCenteredTextLine(4, "Ramp Side?");
+		nxtDisplayCenteredTextLine(6, "Far|Closest|Near");
+		getButton();
+
+		switch (button) {
+		case kRightButton: //near side
+			ramp_direction = -scan_direction;
+			break;
+		case kLeftButton: //far side
+			ramp_direction = scan_direction;
+			break;
+		case kEnterButton: //closest side based on encoders
+			ramp_direction = 0;
+			break;
+		default:
+			StopAllTasks();
+		}
 	}
 
 	eraseDisplay();
@@ -141,8 +164,8 @@ task main()
 	nxtDisplayCenteredBigTextLine(6,"0");
 
 	int delay = 0; //number of seconds to delay
-	bool stay = true;
-	while(stay) {
+	bool done = false;
+	while(!done) {
 		nxtDisplayCenteredBigTextLine(6," %d ",delay);
 		getButton();
 		switch (button) {
@@ -154,7 +177,7 @@ task main()
 				delay--;
 			break;
 		case kEnterButton:
-			stay = false;
+			done = true;
 			break;
 		default:
 			StopAllTasks();
@@ -179,28 +202,31 @@ task main()
 
 	eraseDisplay();
 	StartTask(displayDiagnostics);
-	wait1Msec(50);
 
 	if (wait)
 		waitForStart();
 
 	wait1Msec(delay*1000);
-	//ClearTimer(T1); //keeps track of autonomous period, 30000 ms long
+
+
+	//just get on ramp, dead reckoning
 
 	if (ramp && !block) {
-		//just get on ramp
+
 		goForward(100);
 		wait1Msec(900);
+
 		driveFast(scan_direction*100,0);
 		wait1Msec(2100);
+
 		driveStop();
 	}
 
+	//score block in IR goal
 	else {
-		//score block in IR goal
 		pwr_x = scan_direction*PWR_SCAN;
 		driveTilted(pwr_x, pwr_y);
-		while (SensorValue[SONAR] > 100) {
+		while (SensorValue[SONAR] > 200) {
 			//wait for it to reach the wall
 		}
 		nMotorEncoder[M_DRIVE_FL] = 0;
@@ -208,7 +234,8 @@ task main()
 			nxtDisplayString(3, "%8d     ", nMotorEncoder[M_DRIVE_FL]);
 			//nxtDisplayBigStringAt(0,50, "IR:%d   ", SensorValue[IR]);
 
-			if (SensorValue[IR] == 5) { //we see the IR beacon
+			if (SensorValue[IR] == 5 || abs(nMotorEncoder[M_DRIVE_FL]) > 6500) { //we see the IR beacon
+				scored = true;
 				wait1Msec(80);
 				driveStop();
 				//int near_edge = abs(nMotorEncoder[M_DRIVE_FL]);
@@ -223,16 +250,15 @@ task main()
 				//	driveTilted(-pwr_x, pwr_y);
 				//}
 				//driveStop();
-				//if (scan_direction == -1){ //go a bit more if on left because robot
-				//	goForwardRight(PWR_SCAN);
-				//	wait1Msec(500);
-				//	driveStop();
-				//}
 				nxtDisplayString(3, "%8d     ", nMotorEncoder[M_DRIVE_FL]);
-				if (abs(nMotorEncoder[M_DRIVE_FL]) > 2000)
-					ramp_direction = scan_direction;
-				else
-					ramp_direction = -scan_direction;
+
+				if (ramp_direction == 0) { //if we have not already chosen a direction for the ramp
+					if (abs(nMotorEncoder[M_DRIVE_FL]) > 2000) //TODO: calibrate this value
+						ramp_direction = scan_direction;
+					else
+						ramp_direction = -scan_direction;
+				}
+
 				pwr_x = 0;
 				pwr_y = 75;
 				while(true) {
@@ -251,11 +277,13 @@ task main()
 						pwr_y = 50;
 						break;
 					}
+
 					if (SensorValue[SONAR] < 30){
 						wait1Msec(100);
 						if (SensorValue[SONAR] < 30)
 							break;
 					}
+
 					driveTilted(pwr_x,pwr_y);
 				}
 
@@ -277,10 +305,11 @@ task main()
 			trackWall(35);
 			driveTilted(pwr_x, pwr_y);
 		}
+
 		driveStop();
 
 		if (ramp) {
-			//go remaining distance TODO: return on closest side
+			//go remaining distance
 
 			pwr_x = ramp_direction*1.5*PWR_SCAN;
 			pwr_y = -10; //get a bit away from baskets
@@ -289,11 +318,11 @@ task main()
 				trackWall(45);
 				driveTilted(pwr_x, pwr_y);
 			}
-			servo[SV_AUTO] = 255;
+			servo[SV_AUTO] = 0;
 			driveStop();
 
 			if (debug)
-					wait1Msec(1000);
+				wait1Msec(1000);
 
 			//get on ramp
 
@@ -306,7 +335,7 @@ task main()
 			driveStop();
 
 			if (debug)
-					wait1Msec(1000);
+				wait1Msec(1000);
 
 			//get in front of ramp
 			goForwardLeft(100);
@@ -314,18 +343,15 @@ task main()
 			driveStop();
 
 			if (debug)
-					wait1Msec(1000);
+				wait1Msec(1000);
 
 			//rotate to face ramp
-			if (ramp_direction == 1)
-				rotate(-100);
-			else
-				rotate(-100);
+			rotate(-100);
 			wait1Msec(350);
 			driveStop();
 
 			if (debug)
-					wait1Msec(1000);
+				wait1Msec(1000);
 
 			//get on ramp
 			if (ramp_direction == 1)
