@@ -178,12 +178,3 @@ void lowerLift() {
     motor[M_LIFT_L] = 0;
     motor[M_LIFT_R] = 0;
 }
-
-//pushes blocks out and brings pusher back in
-void scoreBlocks() {
-    //servo[SV_SCORE] = 0;
-    //wait1Msec(1400);
-    //servo[SV_SCORE] = 255;
-    //wait1Msec(1400);
-    //servo[SV_SCORE] = 128;
-}

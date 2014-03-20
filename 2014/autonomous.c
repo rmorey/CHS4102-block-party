@@ -125,8 +125,8 @@ task main() {
 	}
 
 	eraseDisplay();
-	nxtDisplayCenteredBigTextLine(1, "Wait for Start?");
-	nxtDisplayCenteredBigTextLine(6, "Yes    No");
+	nxtDisplayCenteredTextLine(1, "Wait for Start?");
+	nxtDisplayCenteredTextLine(6, "Yes    No");
 	getButton();
 
 	switch (button) {
