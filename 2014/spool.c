@@ -32,7 +32,7 @@ task main() {
 		}
 		while (nNxtButtonPressed == kRightButton) {
 			if (lift) {
-				motor[M_LIFT_R] = 100;
+				motor[M_LIFT_R] = -100;
 				motor[M_LIFT_L] = 100;
 			}
 			else
@@ -40,7 +40,7 @@ task main() {
 		}
 		while (nNxtButtonPressed == kLeftButton) {
 			if (lift) {
-				motor[M_LIFT_R] = -100;
+				motor[M_LIFT_R] = 100;
 				motor[M_LIFT_L] = -100;
 			}
 			else

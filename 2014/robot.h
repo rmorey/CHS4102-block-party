@@ -20,7 +20,7 @@ lowerCase means a variable
 #define BTN_BELT_OUT joy1Btn(6) //hold to push blocks out
 #define BTN_BUCKET_IN (joy1Btn(7) || joy2Btn(4))
 #define BTN_BUCKET_OUT (joy1Btn(8) || joy2Btn(3))
-#define JS_DRIVE_X joystick.joy1_x1 //directional driving
+#define JS_DRIVE_X -joystick.joy1_x1 //directional driving
 #define JS_DRIVE_Y joystick.joy1_y1 //directional driving
 #define JS_ROTATE joystick.joy1_x2 //rotation
 
@@ -42,7 +42,17 @@ lowerCase means a variable
 #define BTN_KILL (joy1Btn(10) || joy2Btn(10))
 
 //encoder defs
-#define ENC_LIFT_MAX 17000
+const int ENC_LIFT_MAX = 17000;
+
+const int SV_HOOK_UP = 72;
+const int SV_HOOK_DOWN = 0;
+const int SV_HOOK_OUT = 245;
+
+const int SV_AUTO_READY = 10;
+const int SV_HOOK_SCORE = 240;
+
+const int SV_LID_CLOSED = 255;
+const int SV_LID_OPEN = 0;
 
 //go in the specified direction at the specified power
 void goForward (int pwr) {
